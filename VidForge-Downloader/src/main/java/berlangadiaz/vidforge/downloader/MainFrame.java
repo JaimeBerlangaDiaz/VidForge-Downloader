@@ -3,7 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package berlangadiaz.vidforge.downloader;
-
+import berlangadiaz.vidforge.downloader.AboutDialog;
 /**
  *
  * @author jaimeberlangadiaz
@@ -11,6 +11,10 @@ package berlangadiaz.vidforge.downloader;
 public class MainFrame extends javax.swing.JFrame {
     private MainViewPanel mainViewPanel;
     private PreferenciasPanel panelPreferencias;
+    private String rutaYtDlp = getDefaultYtDlpPath();
+    private String rutaGuardado = System.getProperty("user.home") + "/Downloads";    
+    private boolean crearM3u = false;
+    private String limiteVelocidad = "";
     
     
     /**
@@ -115,6 +119,7 @@ public class MainFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void itemPreferenciasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemPreferenciasActionPerformed
+        panelPreferencias.cargarPreferenciasActuales();   
         panelContenedor.remove(mainViewPanel);
         panelContenedor.add(panelPreferencias, java.awt.BorderLayout.CENTER);
         panelContenedor.revalidate();
@@ -178,7 +183,48 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
     }
-
+    /*Determina el comando yt-dlp por defecto basado en el Sistema Operativo
+    *Esto asume que el usuario ha instalado la herramienta en su PATH
+    *
+    * @return "yt-dlp.exe" para windows, o "yt-dlp" para Mac/Linux
+    */
+    private String getDefaultYtDlpPath(){
+        String os = System.getProperty("os.name").toLowerCase();
+        
+        if (os.contains("win")){
+            return "yt-dpl.exe";
+        }else {
+            return "yt-dpl";
+        }
+    }
+    //Getters y Setters
+    public String getRutaYtDlp(){
+        return this.rutaYtDlp;
+    }
+    
+    public void setRutaYtDlp(String ruta){
+        this.rutaYtDlp = ruta;
+    }
+    
+    public String getRutaGuardado(){
+        return this.rutaGuardado;
+    }
+    public void setRutaGuardado(String ruta){
+        this.rutaGuardado = ruta;
+    }
+    public boolean isCrearM3u(){
+        return crearM3u;
+    }
+    public void setCrearM3u(boolean crearM3u){
+        this.crearM3u = crearM3u;
+    }
+    public String getLimiteVelocidad(){
+        return limiteVelocidad;
+    }
+    public void setLimiteVelocidad(String limiteVelocidad){
+        this.limiteVelocidad = limiteVelocidad;
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem itemAcerdaDe;
     private javax.swing.JMenuItem itemPreferencias;

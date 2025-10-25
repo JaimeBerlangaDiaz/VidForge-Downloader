@@ -15,7 +15,7 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.lang.ProcessBuilder;
 import java.lang.Process;
-
+import javax.swing.DefaultComboBoxModel;
 /**
  *
  * @author jaimeberlangadiaz
@@ -28,6 +28,9 @@ public class MainViewPanel extends javax.swing.JPanel {
     // (Esta variable la necesitarás para el 'parentFrame' de PreferenciasPanel, 
     // la añado aquí para que el código compile si lo usas)
     private MainFrame parentFrame; 
+    
+    private DefaultComboBoxModel<String> videoFormatsModel;
+    private DefaultComboBoxModel<String> audioFormatsModel;
 
     /**
      * Creates new form MainViewPanel
@@ -35,6 +38,10 @@ public class MainViewPanel extends javax.swing.JPanel {
      * ya que lo necesitarás para que funcione el intercambio de paneles.
      */
     public MainViewPanel(MainFrame parent) { 
+        String[] videoFormats = {"mp4","mkv","webm"};
+        videoFormatsModel = new DefaultComboBoxModel<>(videoFormats);
+        String[] audioFormats = {"mp3","m4a","wav","flac"};
+        audioFormatsModel = new DefaultComboBoxModel<>(audioFormats);
         initComponents();
         this.parentFrame = parent; 
         
@@ -50,6 +57,8 @@ public class MainViewPanel extends javax.swing.JPanel {
 
         // 3. Registrar "Comando + V" para que ejecute la acción de "pegar"
         txtUrl.getInputMap().put(commandV, "paste");
+        
+        cmbFormato.setModel(videoFormatsModel);
     }
 
     /**
@@ -196,7 +205,13 @@ public class MainViewPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void chkSoloAudioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkSoloAudioActionPerformed
-        // TODO add your handling code here:
+        if (chkSoloAudio.isSelected()){
+            cmbFormato.setModel(audioFormatsModel);
+            cmbFormato.setSelectedItem("mp3");
+        }else {
+            cmbFormato.setModel(videoFormatsModel);
+            cmbFormato.setSelectedItem("mp4");
+        }
     }//GEN-LAST:event_chkSoloAudioActionPerformed
 
     private void rbVideoMejorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rbVideoMejorActionPerformed
@@ -215,28 +230,36 @@ public class MainViewPanel extends javax.swing.JPanel {
         
         //Leemos todas las opciones de la GUI
         String url = txtUrl.getText();
+        if (url == null || url.trim().isEmpty() || url.equals("Pega Aquí la URL del vídeo")){
+            javax.swing.JOptionPane.showMessageDialog(this, "Por favor introduce una RL válida.","Error",
+                    javax.swing.JOptionPane.ERROR_MESSAGE);
+            btnDescargar.setEnabled(true);
+            return;
+        }
         boolean soloAudio = chkSoloAudio.isSelected();
         String formato = cmbFormato.getSelectedItem().toString();
         
         String calidadVideo = "";
-            if (rbVideoMejor.isSelected()){
-                calidadVideo = "mejor";
-            }   else if (rbVideo1080.isSelected()){
-                calidadVideo ="1080p";
-            }       else if (rbVideo720.isSelected()){
-                calidadVideo ="720p";
-        }
+            if (rbVideoMejor.isSelected()) calidadVideo ="mejor";
+            else if (rbVideo1080.isSelected()) calidadVideo ="1080";
+            else if (rbVideo720.isSelected()) calidadVideo = "720";
+            String calidadAudio = "";
+            if (rbAudioBuena.isSelected()) calidadAudio ="buena";
+            else if (rbAudioNormal.isSelected()) calidadAudio= "normal";
+            
+        List<String> command = new ArrayList<>();
         
-        String calidadAudio = "";
-        if (rbAudioBuena.isSelected()){
-            calidadAudio = "buena";
-        } else if (rbAudioNormal.isSelected()){
-            calidadAudio = "normal";
-        }
+        String rutaYtDlp= parentFrame.getRutaYtDlp();
+        command.add(rutaYtDlp);
         
-        java.util.List<String> command = new java.util.ArrayList<>();
-        
-        command.add("/opt/homebrew/bin/yt-dlp");
+        try{
+            File ytDlpFile = new File(rutaYtDlp);
+            String ffmpegDirectory = ytDlpFile.getParent();
+            command.add("--ffmpeg-location");
+            command.add(ffmpegDirectory);
+        }catch (Exception e){
+            System.err.println("Advertencia : No se pudo determinar la ruta de ffmpeg automáticamente");
+        }    
         
         //logica de opciones
         if (soloAudio){
@@ -267,12 +290,14 @@ public class MainViewPanel extends javax.swing.JPanel {
         //TEMPORAL: ruta de guardado. Más tarde la leemos de preferencias 
         //Guarda en la carpeta de descargas del Usuario
         command.add("-o");
-        command.add(System.getProperty("user.home")+ "/Download/%(title)s.%(ext)s");
+        command.add(parentFrame.getRutaGuardado()+ "/%(title)s.%(ext)s");
         
+        String limite = parentFrame.getLimiteVelocidad();
+        if (limite != null && !limite.trim().isEmpty()){
+            command.add("-r");
+            command.add(limite);            
+        }
         command.add(url);
-        command.add("--ffmpeg-location");
-        command.add("/opt/homebrew/bin/");
-        
         //Ejecutar el SwingWorker
         DownloadWorker worker = new DownloadWorker(command);
         worker.execute();
@@ -313,13 +338,12 @@ public class MainViewPanel extends javax.swing.JPanel {
     // Clase interna que maneja la descarga en segundo plano (para no congelar la GUI). 
     class DownloadWorker extends javax.swing.SwingWorker<String,String> { 
         
-        private java.util.List<String> command;
+        private List<String> command;
         
         //Constructor le pasamos el comando que debe de ejecutar:
-            public DownloadWorker(java.util.List<String> command){
+            public DownloadWorker(List<String> command){
                 this.command = command;
             }
-            //Este es el trabajo "Sucio". Se ejecuta por detrás.
             @Override
             protected String doInBackground() throws Exception{
                 System.out.println("Ejecutando comando: " + String.join(" ", command));
@@ -352,70 +376,47 @@ public class MainViewPanel extends javax.swing.JPanel {
             
             //Aquí si podemos tocar la GUI (actualizar log y barra)
             @Override
-            protected void process(java.util.List<String> chunks){
+            protected void process(List<String> chunks){
                 //añade la linea del log al JTextArea
                 for (String line : chunks) {
-                    txtLog.append(line + "\n");
-                    
-                    //Actualizar barra de progreso
-                    try {
-                        String percStr = null; // Variable para guardar el string del porcentaje
-                    
-                        if (line.contains("[download]") && line.contains("%")) {
-                            // Opción A: Es una línea de progreso de DESCARGA
-                            // Ej: "[download]  10.5% of 12.34MiB at 1.23MiB/s ETA 00:08"
-                            int pEnd = line.indexOf("%");
-                            int pStart = line.lastIndexOf(" ", pEnd) + 1; // Busca el último espacio antes del '%'
-                            percStr = line.substring(pStart, pEnd);
-
-                        } else if (line.contains("[ExtractAudio]") && line.contains("%")) {
-                            // Opción B: Es una línea de progreso de CONVERSIÓN DE AUDIO
-                            // Ej: "[ExtractAudio] file.mp3: 17.1%|..."
-                            int pEnd = line.indexOf("%");
-                            int pStart = line.lastIndexOf(" ", pEnd); // Busca el espacio...
-                            if (pStart == -1) { // Si no hay espacio, busca los ':'
-                                 pStart = line.lastIndexOf(":", pEnd);
-                            }
-                            percStr = line.substring(pStart + 1, pEnd); // +1 para saltar el espacio o los ':'
-                        }
-
-                        // Si hemos encontrado un porcentaje, lo actualizamos
-                        if (percStr != null) {
-                            double percDouble = Double.parseDouble(percStr.trim());
-                            int percInt = (int) percDouble;
-                            progressBar.setValue(percInt);
-                        }
-                    
-                } catch (Exception e) {
-                    // Si falla el parseo de la barra, lo ignoramos
-                }
-
-                // --- INICIO: CAPTURAR RUTA FINAL ---
-                // yt-dlp nos dice el archivo final en estas líneas:
+                txtLog.append(line + "\n");
                 try {
-                    if (line.contains("[Merger] Merging formats into")) {
-                        // Para vídeos que se unen (ej. "Merging formats into "video.mp4"")
+                    String percStr = null;
+                        if (line.contains("[download]") && line.contains("%")) {
+                            int pEnd = line.indexOf("%");
+                            int pStart = line.lastIndexOf(" ", pEnd) + 1;
+                            percStr = line.substring(pStart, pEnd);
+                        } else if (line.contains("[ExtractAudio]") && line.contains("%")) {
+                            int pEnd = line.indexOf("%");   
+                            int pStart = line.lastIndexOf(" ", pEnd);
+                            if (pStart == -1) pStart = line.lastIndexOf(":", pEnd);
+                            percStr = line.substring(pStart + 1, pEnd);
+                        }
+                        if (percStr != null) { 
+                            double percDouble = Double.parseDouble(percStr.trim());
+                            int percInt = (int) percDouble; progressBar.setValue(percInt);
+                        }
+                    } catch (Exception e) { /* Ignorar error de parseo */ 
+                    }
+                try {
+                    if (line.contains("[Merger] Merging formats into")) { 
                         int start = line.indexOf("\"") + 1;
                         int end = line.lastIndexOf("\"");
                         MainViewPanel.this.ultimoArchivoDescargado = line.substring(start, end);
-
-                    } else if (line.contains("[ExtractAudio] Destination:")) { // <-- ¡¡ESTA ES LA LÍNEA NUEVA!!
-                        // Para conversión de audio (ej. a mp3)
-                        // Esto SOBREESCRIBE la ruta temporal .webm
+                        }
+                    else if (line.contains("[ExtractAudio] Destination:")) {
                         int start = line.indexOf("Destination:") + "Destination:".length();
-                        MainViewPanel.this.ultimoArchivoDescargado = line.substring(start).trim();
-                        
-                    } else if (line.contains("[download] Destination:") && !line.contains("ExtractAudio")) {
-                        // Para descargas directas (SIN conversión)
-                        // Solo guarda esta si NO es una línea de ExtractAudio
-                        int start = line.indexOf("Destination:") + "Destination:".length();
-                        MainViewPanel.this.ultimoArchivoDescargado = line.substring(start).trim();
+                        MainViewPanel.this.ultimoArchivoDescargado = line.substring(start).trim(); 
                     }
-                } catch (Exception e) {
-                    // Si falla el "parseo", no pasa nada
-                    };
-                }
+                    else if (line.contains("[download] Destination:") && !line.contains("ExtractAudio")) {
+                        if (MainViewPanel.this.ultimoArchivoDescargado.isEmpty()) {
+                               int start = line.indexOf("Destination:") + "Destination:".length();
+                               MainViewPanel.this.ultimoArchivoDescargado = line.substring(start).trim(); 
+                        }
+                    }
+                } catch (Exception e) { /* Ignorar error de parseo */ }
             }
+        }
                 
             //Se ejecuta después de que doInBackground() termine. (Limpieza final)
             @Override

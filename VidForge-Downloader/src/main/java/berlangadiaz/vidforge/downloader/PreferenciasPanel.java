@@ -3,6 +3,8 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package berlangadiaz.vidforge.downloader;
+import javax.swing.JFileChooser;
+import java.io.File;
 
 /**
  *
@@ -120,8 +122,17 @@ public class PreferenciasPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_chkCrearM3uActionPerformed
 
     private void btnVolverActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVolverActionPerformed
-        //Aqui el codigo para guardar las preferencias
+        String nuevaRutaYtDlp = txtRutaYtDlp.getText();
+        String nuevaRutaGuardado = txtRutaTemporales.getText();
         
+        boolean m3u = chkCrearM3u.isSelected();
+        String limite = txtLimiteVelocidad.getText();
+        
+        parentFrame.setRutaYtDlp(nuevaRutaYtDlp);
+        parentFrame.setRutaGuardado(nuevaRutaGuardado);
+        
+        parentFrame.setCrearM3u(m3u);
+        parentFrame.setLimiteVelocidad(limite);
         parentFrame.mostrarVistaPrincipal();
     }//GEN-LAST:event_btnVolverActionPerformed
 
@@ -140,7 +151,17 @@ public class PreferenciasPanel extends javax.swing.JPanel {
             txtRutaYtDlp.setText(selectedFile.getAbsolutePath());
         }
     }//GEN-LAST:event_btnBuscarYtDlpActionPerformed
-
+    /** 
+     * Carga los valores actuales guardados en el MainFrame y los muestra
+     * en los Campos de la GUI.
+     */
+    public void cargarPreferenciasActuales(){
+        txtRutaYtDlp.setText(parentFrame.getRutaYtDlp());
+        txtRutaTemporales.setText(parentFrame.getRutaGuardado());
+        
+        chkCrearM3u.setSelected(parentFrame.isCrearM3u());
+        txtLimiteVelocidad.setText(parentFrame.getLimiteVelocidad());
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnBuscarTemporales;
