@@ -299,7 +299,7 @@ public class MainViewPanel extends javax.swing.JPanel {
         }
         command.add(url);
         //Ejecutar el SwingWorker
-        DownloadWorker worker = new DownloadWorker(command);
+        DownloadWorker worker = new DownloadWorker(command, progressBar, txtLog, btnDescargar, this);
         worker.execute();
     }//GEN-LAST:event_btnDescargarActionPerformed
 
@@ -335,109 +335,20 @@ public class MainViewPanel extends javax.swing.JPanel {
                     "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnAbrirVideoActionPerformed
-    // Clase interna que maneja la descarga en segundo plano (para no congelar la GUI). 
-    class DownloadWorker extends javax.swing.SwingWorker<String,String> { 
-        
-        private List<String> command;
-        
-        //Constructor le pasamos el comando que debe de ejecutar:
-            public DownloadWorker(List<String> command){
-                this.command = command;
-            }
-            @Override
-            protected String doInBackground() throws Exception{
-                System.out.println("Ejecutando comando: " + String.join(" ", command));
-                
-                ProcessBuilder pb = new ProcessBuilder(this.command);
-                pb.redirectErrorStream(true);
-                
-                try{
-                    Process process = pb.start();
-                    
-                    try(java.io.BufferedReader reader = new java.io.BufferedReader(
-                        new java.io.InputStreamReader(process.getInputStream()))){
-                        
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                        publish(line);
-                        }
-                    }
-                    
-                    int exitCode = process.waitFor();
-                    if (exitCode == 0){
-                        return "¡¡¡Descarga completada con ÉXITO!!!";
-                    } else {
-                        return "ERROR: La descarga falló (código de salida: "+ exitCode + ")";
-                    }
-                } catch (java.io.IOException | InterruptedException e){
-                    return "ERROR CRÍTICO" + e.getMessage();
-                }
-            }
-            
-            //Aquí si podemos tocar la GUI (actualizar log y barra)
-            @Override
-            protected void process(List<String> chunks){
-                //añade la linea del log al JTextArea
-                for (String line : chunks) {
-                txtLog.append(line + "\n");
-                try {
-                    String percStr = null;
-                        if (line.contains("[download]") && line.contains("%")) {
-                            int pEnd = line.indexOf("%");
-                            int pStart = line.lastIndexOf(" ", pEnd) + 1;
-                            percStr = line.substring(pStart, pEnd);
-                        } else if (line.contains("[ExtractAudio]") && line.contains("%")) {
-                            int pEnd = line.indexOf("%");   
-                            int pStart = line.lastIndexOf(" ", pEnd);
-                            if (pStart == -1) pStart = line.lastIndexOf(":", pEnd);
-                            percStr = line.substring(pStart + 1, pEnd);
-                        }
-                        if (percStr != null) { 
-                            double percDouble = Double.parseDouble(percStr.trim());
-                            int percInt = (int) percDouble; progressBar.setValue(percInt);
-                        }
-                    } catch (Exception e) { /* Ignorar error de parseo */ 
-                    }
-                try {
-                    if (line.contains("[Merger] Merging formats into")) { 
-                        int start = line.indexOf("\"") + 1;
-                        int end = line.lastIndexOf("\"");
-                        MainViewPanel.this.ultimoArchivoDescargado = line.substring(start, end);
-                        }
-                    else if (line.contains("[ExtractAudio] Destination:")) {
-                        int start = line.indexOf("Destination:") + "Destination:".length();
-                        MainViewPanel.this.ultimoArchivoDescargado = line.substring(start).trim(); 
-                    }
-                    else if (line.contains("[download] Destination:") && !line.contains("ExtractAudio")) {
-                        if (MainViewPanel.this.ultimoArchivoDescargado.isEmpty()) {
-                               int start = line.indexOf("Destination:") + "Destination:".length();
-                               MainViewPanel.this.ultimoArchivoDescargado = line.substring(start).trim(); 
-                        }
-                    }
-                } catch (Exception e) { /* Ignorar error de parseo */ }
-            }
-        }
-                
-            //Se ejecuta después de que doInBackground() termine. (Limpieza final)
-            @Override
-            public void done() {
-                try{
-                    //mostramos el mensaje de doInBackground
-                    String resultado = get();
-                    
-                    //Mostramos un dialogo emergente con el resultado
-                    javax.swing.JOptionPane.showMessageDialog(MainViewPanel.this, resultado, 
-                            "Estado de la Descarga", javax.swing.JOptionPane.INFORMATION_MESSAGE);
-                } catch (Exception e) {
-                    //Manejamos cualquier error que ocurra
-                    javax.swing.JOptionPane.showMessageDialog(MainViewPanel.this, 
-                            "Error al finalizar: " + e.getMessage(),"Error",
-                            javax.swing.JOptionPane.ERROR_MESSAGE);
-                }
-                
-                //Reactivar el boton de descargar pase lo que pase
-                btnDescargar.setEnabled(true);
-            }
+    //MÉTODOS PÚBLICOS PARA EL WORKER
+    /**
+     * Permite al DownloadWorker guardar la ruta del archivo final.
+     * @param ruta La ruta del archivo descargado
+     */
+    public void setUltimoArchivoDescargado(String ruta){
+        this.ultimoArchivoDescargado = ruta;
+    }
+    
+    /**Permite al DownloadWorker comprobar si ya se ha guardado una ruta.
+     * @return La ruta del último archivo descargado
+     */
+    public String getUltimoArchivoDescargado(){
+        return this.ultimoArchivoDescargado;
     }
 
 
