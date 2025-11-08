@@ -40,7 +40,7 @@
     </Container>
     <Menu class="javax.swing.JMenuBar" name="jMenuBar1">
       <SubComponents>
-        <Menu class="javax.swing.JMenu" name="jMenu1">
+        <Menu class="javax.swing.JMenu" name="menuArchivo">
           <Properties>
             <Property name="text" type="java.lang.String" value="Archivo"/>
           </Properties>
@@ -55,7 +55,24 @@
             </MenuItem>
           </SubComponents>
         </Menu>
-        <Menu class="javax.swing.JMenu" name="jMenu2">
+        <Menu class="javax.swing.JMenu" name="menuVer">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Ver"/>
+          </Properties>
+          <SubComponents>
+            <Menu class="javax.swing.JMenu" name="itemMostrarDescarga">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Panel De Descarga"/>
+              </Properties>
+            </Menu>
+            <Menu class="javax.swing.JMenu" name="itemMostrarBiblioteca">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Biblioteca"/>
+              </Properties>
+            </Menu>
+          </SubComponents>
+        </Menu>
+        <Menu class="javax.swing.JMenu" name="menuEditar">
           <Properties>
             <Property name="text" type="java.lang.String" value="Editar"/>
           </Properties>
@@ -70,7 +87,7 @@
             </MenuItem>
           </SubComponents>
         </Menu>
-        <Menu class="javax.swing.JMenu" name="jMenu7">
+        <Menu class="javax.swing.JMenu" name="menuAyuda">
           <Properties>
             <Property name="text" type="java.lang.String" value="Ayuda"/>
           </Properties>

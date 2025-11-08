@@ -15,6 +15,7 @@ public class MainFrame extends javax.swing.JFrame {
     private String rutaGuardado = System.getProperty("user.home") + "/Downloads";    
     private boolean crearM3u = false;
     private String limiteVelocidad = "";
+    private BibliotecaPanel panelBiblioteca;
     
     
     /**
@@ -25,6 +26,7 @@ public class MainFrame extends javax.swing.JFrame {
         setLocationRelativeTo(null);
         mainViewPanel = new MainViewPanel(this);
         panelPreferencias = new PreferenciasPanel(this);
+        panelBiblioteca = new BibliotecaPanel(this);
         panelContenedor.add(mainViewPanel, java.awt.BorderLayout.CENTER);
         
         panelContenedor.revalidate();
@@ -48,11 +50,14 @@ public class MainFrame extends javax.swing.JFrame {
         jMenu6 = new javax.swing.JMenu();
         panelContenedor = new javax.swing.JPanel();
         jMenuBar1 = new javax.swing.JMenuBar();
-        jMenu1 = new javax.swing.JMenu();
+        menuArchivo = new javax.swing.JMenu();
         itemSalir = new javax.swing.JMenuItem();
-        jMenu2 = new javax.swing.JMenu();
+        menuVer = new javax.swing.JMenu();
+        itemMostrarDescarga = new javax.swing.JMenu();
+        itemMostrarBiblioteca = new javax.swing.JMenu();
+        menuEditar = new javax.swing.JMenu();
         itemPreferencias = new javax.swing.JMenuItem();
-        jMenu7 = new javax.swing.JMenu();
+        menuAyuda = new javax.swing.JMenu();
         itemAcerdaDe = new javax.swing.JMenuItem();
 
         jMenu3.setText("File");
@@ -77,7 +82,7 @@ public class MainFrame extends javax.swing.JFrame {
         getContentPane().add(panelContenedor);
         panelContenedor.setBounds(0, 0, 630, 550);
 
-        jMenu1.setText("Archivo");
+        menuArchivo.setText("Archivo");
 
         itemSalir.setText("Salir");
         itemSalir.addActionListener(new java.awt.event.ActionListener() {
@@ -85,11 +90,21 @@ public class MainFrame extends javax.swing.JFrame {
                 itemSalirActionPerformed(evt);
             }
         });
-        jMenu1.add(itemSalir);
+        menuArchivo.add(itemSalir);
 
-        jMenuBar1.add(jMenu1);
+        jMenuBar1.add(menuArchivo);
 
-        jMenu2.setText("Editar");
+        menuVer.setText("Ver");
+
+        itemMostrarDescarga.setText("Panel De Descarga");
+        menuVer.add(itemMostrarDescarga);
+
+        itemMostrarBiblioteca.setText("Biblioteca");
+        menuVer.add(itemMostrarBiblioteca);
+
+        jMenuBar1.add(menuVer);
+
+        menuEditar.setText("Editar");
 
         itemPreferencias.setText("Preferencias");
         itemPreferencias.addActionListener(new java.awt.event.ActionListener() {
@@ -97,11 +112,11 @@ public class MainFrame extends javax.swing.JFrame {
                 itemPreferenciasActionPerformed(evt);
             }
         });
-        jMenu2.add(itemPreferencias);
+        menuEditar.add(itemPreferencias);
 
-        jMenuBar1.add(jMenu2);
+        jMenuBar1.add(menuEditar);
 
-        jMenu7.setText("Ayuda");
+        menuAyuda.setText("Ayuda");
 
         itemAcerdaDe.setText("Acerca De..");
         itemAcerdaDe.addActionListener(new java.awt.event.ActionListener() {
@@ -109,9 +124,9 @@ public class MainFrame extends javax.swing.JFrame {
                 itemAcerdaDeActionPerformed(evt);
             }
         });
-        jMenu7.add(itemAcerdaDe);
+        menuAyuda.add(itemAcerdaDe);
 
-        jMenuBar1.add(jMenu7);
+        jMenuBar1.add(menuAyuda);
 
         setJMenuBar(jMenuBar1);
 
@@ -227,18 +242,21 @@ public class MainFrame extends javax.swing.JFrame {
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem itemAcerdaDe;
+    private javax.swing.JMenu itemMostrarBiblioteca;
+    private javax.swing.JMenu itemMostrarDescarga;
     private javax.swing.JMenuItem itemPreferencias;
     private javax.swing.JMenuItem itemSalir;
-    private javax.swing.JMenu jMenu1;
-    private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenu jMenu4;
     private javax.swing.JMenu jMenu5;
     private javax.swing.JMenu jMenu6;
-    private javax.swing.JMenu jMenu7;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuBar jMenuBar2;
     private javax.swing.JMenuBar jMenuBar3;
+    private javax.swing.JMenu menuArchivo;
+    private javax.swing.JMenu menuAyuda;
+    private javax.swing.JMenu menuEditar;
+    private javax.swing.JMenu menuVer;
     private javax.swing.JPanel panelContenedor;
     // End of variables declaration//GEN-END:variables
 }
