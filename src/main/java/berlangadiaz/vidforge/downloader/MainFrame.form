@@ -60,16 +60,22 @@
             <Property name="text" type="java.lang.String" value="Ver"/>
           </Properties>
           <SubComponents>
-            <Menu class="javax.swing.JMenu" name="itemMostrarDescarga">
+            <MenuItem class="javax.swing.JMenuItem" name="itemMostrarDescarga">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Panel De Descarga"/>
+                <Property name="text" type="java.lang.String" value="Panel De Descargas"/>
               </Properties>
-            </Menu>
-            <Menu class="javax.swing.JMenu" name="itemMostrarBiblioteca">
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="itemMostrarDescargaActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="itemMostrarBiblioteca">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Biblioteca"/>
               </Properties>
-            </Menu>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="itemMostrarBibliotecaActionPerformed"/>
+              </Events>
+            </MenuItem>
           </SubComponents>
         </Menu>
         <Menu class="javax.swing.JMenu" name="menuEditar">

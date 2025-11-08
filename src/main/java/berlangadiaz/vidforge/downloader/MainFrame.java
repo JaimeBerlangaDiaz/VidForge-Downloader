@@ -53,8 +53,8 @@ public class MainFrame extends javax.swing.JFrame {
         menuArchivo = new javax.swing.JMenu();
         itemSalir = new javax.swing.JMenuItem();
         menuVer = new javax.swing.JMenu();
-        itemMostrarDescarga = new javax.swing.JMenu();
-        itemMostrarBiblioteca = new javax.swing.JMenu();
+        itemMostrarDescarga = new javax.swing.JMenuItem();
+        itemMostrarBiblioteca = new javax.swing.JMenuItem();
         menuEditar = new javax.swing.JMenu();
         itemPreferencias = new javax.swing.JMenuItem();
         menuAyuda = new javax.swing.JMenu();
@@ -96,10 +96,20 @@ public class MainFrame extends javax.swing.JFrame {
 
         menuVer.setText("Ver");
 
-        itemMostrarDescarga.setText("Panel De Descarga");
+        itemMostrarDescarga.setText("Panel De Descargas");
+        itemMostrarDescarga.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                itemMostrarDescargaActionPerformed(evt);
+            }
+        });
         menuVer.add(itemMostrarDescarga);
 
         itemMostrarBiblioteca.setText("Biblioteca");
+        itemMostrarBiblioteca.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                itemMostrarBibliotecaActionPerformed(evt);
+            }
+        });
         menuVer.add(itemMostrarBiblioteca);
 
         jMenuBar1.add(menuVer);
@@ -136,6 +146,7 @@ public class MainFrame extends javax.swing.JFrame {
     private void itemPreferenciasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemPreferenciasActionPerformed
         panelPreferencias.cargarPreferenciasActuales();   
         panelContenedor.remove(mainViewPanel);
+        panelContenedor.remove(panelBiblioteca);
         panelContenedor.add(panelPreferencias, java.awt.BorderLayout.CENTER);
         panelContenedor.revalidate();
         panelContenedor.repaint();
@@ -157,9 +168,19 @@ public class MainFrame extends javax.swing.JFrame {
         aboutDialog.setLocationRelativeTo(this); 
         aboutDialog.setVisible(true);
     }//GEN-LAST:event_itemAcerdaDeActionPerformed
+
+    private void itemMostrarBibliotecaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemMostrarBibliotecaActionPerformed
+        panelBiblioteca.cargarArchivosDeDisco();
+        mostrarVistaBiblioteca();
+    }//GEN-LAST:event_itemMostrarBibliotecaActionPerformed
+
+    private void itemMostrarDescargaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemMostrarDescargaActionPerformed
+        mostrarVistaPrincipal();
+    }//GEN-LAST:event_itemMostrarDescargaActionPerformed
     
     public void mostrarVistaPrincipal() {
         panelContenedor.remove(panelPreferencias);
+        panelContenedor.remove(panelBiblioteca);
         panelContenedor.add(mainViewPanel, java.awt.BorderLayout.CENTER);
         panelContenedor.revalidate();
         panelContenedor.repaint();
@@ -240,10 +261,25 @@ public class MainFrame extends javax.swing.JFrame {
         this.limiteVelocidad = limiteVelocidad;
     }
     
+    /**
+     * Método público para cambiar a la vista de la Biblioteca
+     */
+    
+    public void mostrarVistaBiblioteca(){
+        //Quita todos los otros paneles
+        panelContenedor.remove(panelPreferencias);
+        panelContenedor.remove(mainViewPanel);
+        
+        //Añade el panel de biblioteca
+        panelContenedor.add(panelBiblioteca, java.awt.BorderLayout.CENTER);
+        panelContenedor.revalidate();
+        panelContenedor.repaint();
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem itemAcerdaDe;
-    private javax.swing.JMenu itemMostrarBiblioteca;
-    private javax.swing.JMenu itemMostrarDescarga;
+    private javax.swing.JMenuItem itemMostrarBiblioteca;
+    private javax.swing.JMenuItem itemMostrarDescarga;
     private javax.swing.JMenuItem itemPreferencias;
     private javax.swing.JMenuItem itemSalir;
     private javax.swing.JMenu jMenu3;
