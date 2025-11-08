@@ -88,62 +88,28 @@ public class BibliotecaPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnActualizarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnActualizarActionPerformed
-        cargarArchivosDeDisco();
+        cargarDatosDelJson();
     }//GEN-LAST:event_btnActualizarActionPerformed
     /**
      * Lee la carpeta de Descargas (guardada en MainFrame),
      * busca archivos de vídeo/audio, y los carga en la JTable.
      */
-    public void cargarArchivosDeDisco() {
-        System.out.println("Cargando archivos de disco..."); // Mensaje para depuración
+    public void cargarDatosDelJson() {
+        System.out.println("Cargando bliblioteca desde JSON..."); // Mensaje para depuración
+        
+        //Obtener la ruta de guardado (donde esta el log)
+        String rutaCarpetaGuardado = parentFrame.getRutaGuardado();
+        
+        //LLamar al GestorJson
+        GestorJson gestor = new GestorJson(rutaCarpetaGuardado);
+        java.util.List<MediaFile> archivos = gestor.leerArchivos();
+        
+        // Pasar los archivos al "motor" de la tabla
+        tableModel.setArchivos(archivos);
+        
+        System.out.println("Bliblioteca cargada. Encontrados " + archivos.size()+ " registros.");
 
-        // Limpiar la tabla de datos antiguos (usando el motor)
-        tableModel.clear();
-
-        // Obtener la ruta de guardado desde el "cerebro" (MainFrame)
-        String rutaDescargas = parentFrame.getRutaGuardado();
-        java.io.File carpeta = new java.io.File(rutaDescargas);
-
-        // Comprobar si la carpeta existe
-        if (!carpeta.exists() || !carpeta.isDirectory()) {
-            System.err.println("La carpeta de descargas no existe: " + rutaDescargas);
-            return; // No hacemos nada si no existe
-        }
-
-        // Obtener todos los archivos de la carpeta
-        java.io.File[] archivosEnCarpeta = carpeta.listFiles();
-
-        if (archivosEnCarpeta == null) {
-            System.err.println("No se pudieron leer los archivos de la carpeta.");
-            return;
-        }
-
-        // Crear una lista temporal para guardar los MediaFile
-        java.util.List<MediaFile> archivosEncontrados = new java.util.ArrayList<>();
-
-        // Recorrer los archivos y filtrarlos
-        for (java.io.File f : archivosEnCarpeta) {
-            String nombre = f.getName().toLowerCase();
-
-            // Filtramos solo los tipos de archivo que nos interesan
-            if (f.isFile() && (
-                    nombre.endsWith(".mp4") || 
-                    nombre.endsWith(".mkv") || 
-                    nombre.endsWith(".webm") || 
-                    nombre.endsWith(".mp3") || 
-                    nombre.endsWith(".m4a") ||
-                    nombre.endsWith(".flac") ||
-                    nombre.endsWith(".wav"))) 
-            {
-                // Si es un archivo de media, crea el objeto y añádelo
-                // (Usamos el constructor de MediaFile que creamos en el Paso 1)
-                archivosEncontrados.add(new MediaFile(f));
-            }
-        }
-
-        // Pasar la lista final a nuestro "motor" de tabla
-        tableModel.setArchivos(archivosEncontrados);
-        System.out.println("Carga finalizada. Encontrados " + archivosEncontrados.size() + " archivos.");
+        
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

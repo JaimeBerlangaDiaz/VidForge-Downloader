@@ -170,7 +170,7 @@ public class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_itemAcerdaDeActionPerformed
 
     private void itemMostrarBibliotecaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemMostrarBibliotecaActionPerformed
-        panelBiblioteca.cargarArchivosDeDisco();
+        panelBiblioteca.cargarDatosDelJson();
         mostrarVistaBiblioteca();
     }//GEN-LAST:event_itemMostrarBibliotecaActionPerformed
 

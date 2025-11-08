@@ -3,11 +3,47 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>berlangadiaz</groupId>
     <artifactId>VidForge-Downloader</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
+    
+    <!-- ¡AÑADIDO! Información básica del proyecto -->
+    <name>VidForge Downloader</name>
+    <description>Una GUI para yt-dlp creada para la tarea DI01.</description>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>24</maven.compiler.release>
-        <exec.mainClass>berlangadiaz.vidforge.downloader.VidForgeDownloader</exec.mainClass>
+        <!-- ¡CORREGIDO! La clase principal real es MainFrame, no la clase borrada -->
+        <exec.mainClass>berlangadiaz.vidforge.downloader.MainFrame</exec.mainClass>
     </properties>
+    
+    <dependencies>
+        <!-- Dependencia para manejar JSON (la única que necesitamos) -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+        </dependency>
+    </dependencies>
+    <!-- Esto le dice a Maven cómo "construir" el archivo .jar final -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version> <!-- Usar una versión moderna del plugin -->
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <!-- Esta es la línea clave: -->
+                            <!-- Escribe la clase 'main' dentro del JAR, -->
+                            <!-- para que el sistema sepa qué ejecutar al hacer doble clic -->
+                            <mainClass>berlangadiaz.vidforge.downloader.MainFrame</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    
 </project>

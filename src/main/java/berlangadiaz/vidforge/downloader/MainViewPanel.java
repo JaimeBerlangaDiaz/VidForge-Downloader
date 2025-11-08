@@ -299,7 +299,7 @@ public class MainViewPanel extends javax.swing.JPanel {
         }
         command.add(url);
         //Ejecutar el SwingWorker
-        DownloadWorker worker = new DownloadWorker(command, progressBar, txtLog, btnDescargar, this);
+        DownloadWorker worker = new DownloadWorker(command, progressBar, txtLog, btnDescargar, this, parentFrame);
         worker.execute();
     }//GEN-LAST:event_btnDescargarActionPerformed
 

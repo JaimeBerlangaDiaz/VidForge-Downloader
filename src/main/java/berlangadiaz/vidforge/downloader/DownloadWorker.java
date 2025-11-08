@@ -21,16 +21,19 @@ public class DownloadWorker extends SwingWorker<String, String> {
     private final JTextArea txtLog;
     private final JButton btnDescargar;
     private final MainViewPanel mainView; // Referencia al panel principal
+    private final MainFrame parentFrame;
 
     /**
      * Constructor que recibe los componentes de la GUI a los que debe reportar.
      */
-    public DownloadWorker(List<String> command, JProgressBar progressBar, JTextArea txtLog, JButton btnDescargar, MainViewPanel mainView) {
+    public DownloadWorker(List<String> command, JProgressBar progressBar, JTextArea txtLog, 
+            JButton btnDescargar, MainViewPanel mainView,MainFrame parentFrame) {
         this.command = command;
         this.progressBar = progressBar;
         this.txtLog = txtLog;
         this.btnDescargar = btnDescargar;
         this.mainView = mainView;
+        this.parentFrame = parentFrame;
     }
 
     /**
@@ -108,20 +111,48 @@ public class DownloadWorker extends SwingWorker<String, String> {
     }
 
     /**
-     * Se ejecuta en el hilo de la GUI *después* de que doInBackground() termina.
-     */
+    * Se ejecuta en el hilo de la GUI *después* de que doInBackground() termina.
+    */
     @Override
     public void done() {
         try {
+            // Coger el mensaje final que devolvió doInBackground()
             String resultado = get();
-            JOptionPane.showMessageDialog(mainView, resultado,
-                    "Estado de la Descarga", JOptionPane.INFORMATION_MESSAGE);
+                
+            // Si la descarga fue un éxito, lo guardamos en el JSON
+            if (resultado.contains("ÉXITO")) {
+                    
+                // Coge la ruta del archivo que guardamos (ej. /Users/.../video.mp4)
+                String rutaArchivoDescargado = mainView.getUltimoArchivoDescargado();
+
+                if (rutaArchivoDescargado != null && !rutaArchivoDescargado.isEmpty()) {
+                        
+                    // Crea el objeto File
+                    java.io.File file = new java.io.File(rutaArchivoDescargado);
+
+                    // Crea el objeto MediaFile (el "molde")
+                    MediaFile mediaFile = new MediaFile(file);
+
+                    // Coge la ruta de guardado (ej. /Users/.../Downloads)
+                    String rutaCarpetaGuardado = parentFrame.getRutaGuardado();
+
+                    // Llama al GestorJson para añadirlo al log
+                    GestorJson gestor = new GestorJson(rutaCarpetaGuardado);
+                    gestor.anadirArchivo(mediaFile);
+                }
+            }
+                
+            // Mostrar un diálogo emergente con el resultado
+            javax.swing.JOptionPane.showMessageDialog(mainView, resultado,
+                "Estado de la Descarga", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(mainView,
-                    "Error al finalizar: " + e.getMessage(), "Error",
-                    JOptionPane.ERROR_MESSAGE);
+                 // Manejar cualquier error que ocurriera
+            javax.swing.JOptionPane.showMessageDialog(mainView, "Error al finalizar: " + e.getMessage(), 
+                    "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
         }
-        // Reactivar el botón
+            
+        // REACTIVAR el botón de descargar, pase lo que pase
         btnDescargar.setEnabled(true);
     }
 }
