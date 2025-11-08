@@ -1,9 +1,9 @@
-# VidForge-Downloader
+# VidForge Downloader
 
 Aplicación GUI simple para descargar vídeos y audio de plataformas online utilizando yt-dlp como motor.
 
 **Autor:** Jaime Berlanga Diaz
-**Curso:** Desarrollo de Interfaces - DI01 - 2025/2026
+**Curso:** Desarrollo de Interfaces - DI01 - 2024/2025
 
 ---
 
@@ -11,12 +11,45 @@ Aplicación GUI simple para descargar vídeos y audio de plataformas online util
 
 Para el desarrollo de esta tarea, se han utilizado los siguientes recursos principales, además de los proporcionados en la unidad:
 
-* **yt-dlp:** Herramienta de línea de comandos para la descarga. ([https://github.com/yt-dlp/yt-dlp](https://github.com/yt-dlp/yt-dlp))
-* **ffmpeg:** Necesario para el post-procesado (conversión, extracción de audio). ([https://ffmpeg.org/](https://ffmpeg.org/))
-* **Homebrew (macOS):** Para la instalación y gestión de `yt-dlp` y `ffmpeg`. ([https://brew.sh/index_es](https://brew.sh/index_es))
-* **NetBeans IDE 27:** Entorno de desarrollo utilizado.
-* **JDK 24:** Kit de desarrollo de Java.
-* **Asistente AI (Gemini):** Para guiar el desarrollo paso a paso, depurar errores de código y lógica, y proporcionar soluciones a problemas específicos.
+* **yt-dlp (Recurso Externo):** Herramienta de línea de comandos fundamental para la descarga.
+  * *Enlace:* <https://github.com/yt-dlp/yt-dlp>
+
+* **ffmpeg (Recurso Externo):** Necesario para el post-procesado (conversión de formatos, extracción de audio).
+  * *Enlace:* <https://ffmpeg.org/>
+
+* **Homebrew (macOS) (Recurso Externo):** Para la instalación y gestión de 'yt-dlp' y 'ffmpeg' en el entorno de desarrollo de macOS.
+  * *Enlace:* <https://brew.sh/index_es>
+
+* **NetBeans IDE y JDK 24:** El entorno de desarrollo y el kit de Java proporcionados por el curso.
+
+* **Asistente AI (Gemini) (LLM):** Se utilizó este LLM como asistente de "pair programming".
+  * *Propósito:* Guiar el desarrollo paso a paso, generar los bloques de código para los conceptos listados abajo, depurar errores de lógica (ej. 'protected' vs 'public' en 'SwingWorker', typos en comandos de 'yt-dlp') y solucionar problemas específicos del entorno (ej. bug de 'Cmd+V' en macOS).
+
+---
+
+## Citas de Código y Conceptos Aplicados
+
+La mayor parte del código de lógica no fue copiado directamente, sino implementado basándose en los siguientes conceptos estándar de Java y Swing:
+
+1.  **Ejecución de Procesos Externos ('ProcessBuilder'):**
+    * **Propósito:** Es el "motor" que permite a Java ejecutar el comando 'yt-dlp' en la terminal.
+    * **Código Aplicado:** La lógica de 'new ProcessBuilder(command)', 'pb.redirectErrorStream(true)', 'pb.start()', y la lectura de 'InputStreamReader' en un 'BufferedReader' para capturar la salida de la consola.
+    * **Concepto Base (Tutorial):** <https://www.baeldung.com/java-process-builder>
+
+2.  **Concurrencia en Swing ('SwingWorker'):**
+    * **Propósito:** Evitar que la interfaz gráfica (GUI) se "congele" durante la descarga (que es una tarea larga).
+    * **Código Aplicado:** Toda la clase 'DownloadWorker' es una implementación de 'SwingWorker', usando 'doInBackground()' para la descarga, 'publish()' y 'process()' para actualizar el 'JTextArea' y la 'JProgressBar', y 'done()' para mostrar el 'JOptionPane' final y reactivar el botón.
+    * **Concepto Base (Tutorial):** <https://docs.oracle.com/javase/tutorial/uiswing/concurrency/worker.html>
+
+3.  **Atajo de Teclado Pegar (Cmd+V) en macOS:**
+    * **Propósito:** Arreglar un bug conocido de Swing en macOS donde 'Cmd+V' no funciona para pegar en un 'JTextField'.
+    * **Código Aplicado:** El bloque de código en el constructor de 'MainViewPanel' que usa 'KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.META_DOWN_MASK)', 'getActionMap()', y 'getInputMap()'.
+    * **Concepto Base (Hilo de StackOverflow):** <https://stackoverflow.com/questions/2114268/how-to-implement-cut-copy-paste-in-a-java-swing-application-on-mac-os-x>
+
+4.  **Selector de Archivos ('JFileChooser'):**
+    * **Propósito:** Permitir al usuario seleccionar la ruta de 'yt-dlp' y la carpeta de guardado.
+    * **Código Aplicado:** El código en los botones 'btnBuscarYtDlp' y 'btnBuscarTemporales' en 'PreferenciasPanel', usando 'setFileSelectionMode(JFileChooser.FILES_ONLY)' y 'setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY)'.
+    * **Concepto Base (Tutorial):** <https://docs.oracle.com/javase/tutorial/uiswing/components/filechooser.html>
 
 ---
 
@@ -24,44 +57,39 @@ Para el desarrollo de esta tarea, se han utilizado los siguientes recursos princ
 
 Durante el desarrollo surgieron varios inconvenientes:
 
-1.  **Instalación de Homebrew y herramientas:** Dificultades iniciales para instalar Homebrew en macOS y configurar correctamente el PATH para poder usar los comandos `brew`, `yt-dlp` y `ffmpeg`.
-    * **Solución:** Reinstalar Homebrew siguiendo los pasos exactos, incluyendo la ejecución de los comandos "Next steps:" para añadir `brew` al `.zprofile` y reiniciar la terminal.
+1.  **Configuración Inicial (NetBeans + Git):** Confusión al crear el proyecto Maven dentro del repositorio Git clonado (problemas con 'mavenproject3', carpetas anidadas y falta de la carpeta '.git').
+    * **Solución:** Re-clonar el repositorio en una carpeta limpia, restaurar la carpeta 'src' manualmente y corregir la estructura de carpetas.
 
-2.  **Autenticación de Git con GitHub:** Error al intentar clonar el repositorio privado usando la contraseña habitual. GitHub ya no la admite para operaciones Git.
-    * **Solución:** Crear un **Token de Acceso Personal (PAT)** en la configuración de desarrollador de GitHub, asegurándose de marcar el permiso (`scope`) **`repo`**, y usar ese token en lugar de la contraseña al clonar o hacer `push`.
+2.  **Autenticación de Git con GitHub:** Error al clonar, ya que GitHub no acepta contraseñas.
+    * **Solución:** Crear un **Token de Acceso Personal (PAT)** en GitHub con el permiso ('scope') **'repo'** y usarlo como contraseña.
 
-3.  **Configuración Inicial (NetBeans + Git):** Confusión al crear el proyecto Maven dentro del repositorio Git clonado. NetBeans usaba un nombre por defecto (`mavenproject3`) y a veces no reconocía la carpeta clonada correctamente. Además, hubo problemas con la estructura de carpetas (carpetas anidadas) y la falta de la carpeta `.git`.
-    * **Solución:** Borrar proyectos/carpetas incorrectas, reiniciar NetBeans, asegurarse de seleccionar la carpeta clonada como "Project Location" al crear el proyecto. En el caso de la falta de `.git`, se tuvo que **re-clonar** el repositorio y **restaurar** la carpeta `src` manualmente, corrigiendo luego la estructura de carpetas anidadas moviendo el contenido al nivel superior y borrando la carpeta interior vacía.
+3.  **Componentes de Menú Incorrectos:** Se usaron 'JCheckBoxMenuItem' en lugar de 'JMenuItem', lo que borró el código de los eventos al corregirlo.
+    * **Solución:** Reemplazar los componentes y volver a añadir el código de los eventos ('actionPerformed').
 
-4.  **Componentes de Menú Incorrectos:** Se usaron `JCheckBoxMenuItem` en lugar de `JMenuItem` para las opciones del menú, lo que provocó que se borrara el código de los eventos al corregirlo.
-    * **Solución:** Reemplazar los componentes por `JMenuItem` en el Diseñador y volver a añadir el código de los eventos (`actionPerformed`) para "Salir", "Preferencias" y "Acerca de..." haciendo doble clic en los nuevos items y pegando el código correspondiente.
+4.  **Refactorización del 'DownloadWorker':** Mover la clase interna 'DownloadWorker' a su propio archivo rompió la comunicación con la GUI.
+    * **Solución:** Modificar el constructor de 'DownloadWorker' para que reciba los componentes de la GUI como parámetros y añadir métodos 'puente' ('get/setUltimoArchivoDescargado') en 'MainViewPanel'.
 
-5.  **Pegar Texto (Cmd+V) en macOS:** El `JTextField` de la URL no permitía pegar con `Cmd+V`.
-    * **Solución:** Añadir código específico en el constructor del `MainViewPanel` para registrar manualmente el `KeyStroke` de `Cmd+V` y asociarlo a la acción "paste".
+5.  **Barra de Progreso con MP3:** La barra de progreso solo funcionaba con '[download]' y no con '[ExtractAudio]'.
+    * **Solución:** Modificar el método 'process()' para que *también* parseara el porcentaje de las líneas '[ExtractAudio]'.
 
-6.  **Error `protected void done()` en `SwingWorker`:** El método `done()` daba error si se declaraba `protected` dentro de la clase interna.
-    * **Solución:** Cambiar el modificador a `public void done()`.
+6.  **Botón 'Reproducir Último Archivo' con MP3:** Fallaba porque guardaba la ruta del archivo temporal ('.webm') que 'yt-dlp' borraba.
+    * **Solución:** Modificar el método 'process()' para que *priorice* la captura de la ruta final de las líneas '[ExtractAudio] Destination:' o '[Merger] Merging formats into'.
 
-7.  **Barra de Progreso con MP3:** La barra solo se actualizaba durante la descarga (`[download]`), no durante la conversión (`[ExtractAudio]`).
-    * **Solución:** Modificar el método `process()` para que *también* parseara el porcentaje de las líneas `[ExtractAudio]`, usando `lastIndexOf` para encontrar el número de forma más robusta.
-
-8.  **Botón "Reproducir Último Archivo" con MP3:** Fallaba porque guardaba la ruta del archivo temporal (`.webm`, `.m4a`) que `yt-dlp` borraba. También hubo un error inicial por declarar la variable `ultimoArchivoDescargado` dos veces.
-    * **Solución:** Corregir la declaración duplicada y modificar el método `process()` para que *priorice* la captura de la ruta final de las líneas `[ExtractAudio] Destination:` o `[Merger] Merging formats into`, usando `MainViewPanel.this.ultimoArchivoDescargado` para asegurar el ámbito correcto.
-
-9.  **Errores en Comandos `yt-dlp`:** Se corrigieron typos en los argumentos: `-x` (no `--x`), `Downloads` (no `Download`), `bestvideo[...]bestaudio/best[...]` (faltaba `best`), y la comparación `equals("720p")` (faltaba la 'p'). También se añadió `--ffmpeg-location` para que `yt-dlp` encuentre `ffmpeg`.
-
+7.  **Errores en Comandos 'yt-dlp':** Se corrigieron typos en los argumentos: '-x' (no '--x'), 'Downloads' (no 'Download'), 'bestvideo[...]bestaudio/best[...]' (faltaba 'best'), y la comparación 'equals('720p')'.
 
 ---
 
 ## Incidencias / Funcionalidades Pendientes
 
-* La opción **"Crear .m3u para listas"** (`chkCrearM3u`) está en la GUI de Preferencias y se guarda/carga, pero la lógica para añadir el argumento correspondiente (ej. `--yes-playlist --write-playlist-metafiles`) al comando de `yt-dlp` **no está implementada** en `btnDescargarActionPerformed`.
+* La opción **'Crear .m3u para listas'** ('chkCrearM3u') está en la GUI de Preferencias y se guarda/carga, pero la lógica para añadir el argumento correspondiente al comando de 'yt-dlp' **no está implementada**.
 
 ---
 
 ## Funcionalidades Extra Implementadas
 
-* **`JComboBox` Dinámico:** El desplegable de formatos cambia su contenido (vídeo/audio) según el estado de la casilla "Descargar solo audio", evitando combinaciones inválidas.
-* **Detección Multiplataforma:** El valor por defecto para la ruta de `yt-dlp` se adapta a Windows (`yt-dlp.exe`) o Mac/Linux (`yt-dlp`).
+* **Selección de Calidad de Vídeo:** Opciones específicas (1080p, 720p) además de 'Mejor disponible'.
+* **Selección de Calidad de Audio:** Opciones 'Buena' y 'Normal' para descargas de solo audio.
+* **'JComboBox' Dinámico:** El desplegable de formatos ('cmbFormato') cambia su contenido (vídeo/audio) según el estado de la casilla 'Descargar solo audio'.
+* **Detección Multiplataforma:** El valor por defecto para la ruta de 'yt-dlp' se adapta a Windows ('yt-dlp.exe') o Mac/Linux ('yt-dlp').
 * **Carga de Preferencias:** El panel de Preferencias muestra los valores guardados la última vez.
-* **Límite de Velocidad:** La opción para limitar la velocidad de descarga está implementada y se pasa a `yt-dlp` con el argumento `-r`.
+* **Límite de Velocidad:** La opción de 'JSpinner' para limitar la velocidad está implementada y se pasa a 'yt-dlp' (ej. '-r 500K').'JSpinner' para limitar la velocidad está implementada y se pasa a 'yt-dlp' (ej. '-r 500K').'JSpinner' para limitar la velocidad está implementada y se pasa a 'yt-dlp' (ej. '-r 500K').
