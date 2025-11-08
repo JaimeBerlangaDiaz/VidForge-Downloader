@@ -18,7 +18,8 @@ public class PreferenciasPanel extends javax.swing.JPanel {
      */
     public PreferenciasPanel(MainFrame parent) {
         initComponents();
-            this.parentFrame = parent;
+        spinnerLimite.setModel(new javax.swing.SpinnerNumberModel(0,0,50000,500));
+        this.parentFrame = parent;
     }
 
     /**
@@ -35,11 +36,11 @@ public class PreferenciasPanel extends javax.swing.JPanel {
         btnBuscarTemporales = new javax.swing.JButton();
         chkCrearM3u = new javax.swing.JCheckBox();
         jLabel2 = new javax.swing.JLabel();
-        txtLimiteVelocidad = new javax.swing.JTextField();
         btnVolver = new javax.swing.JButton();
         btnBuscarYtDlp = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
         txtRutaTemporales = new javax.swing.JTextField();
+        spinnerLimite = new javax.swing.JSpinner();
 
         setLayout(null);
 
@@ -76,8 +77,6 @@ public class PreferenciasPanel extends javax.swing.JPanel {
         jLabel2.setText("Límite de velocidad de Descarga (ej. 500K):");
         add(jLabel2);
         jLabel2.setBounds(20, 190, 260, 30);
-        add(txtLimiteVelocidad);
-        txtLimiteVelocidad.setBounds(280, 190, 320, 23);
 
         btnVolver.setText("Guardar y Volver");
         btnVolver.addActionListener(new java.awt.event.ActionListener() {
@@ -102,6 +101,8 @@ public class PreferenciasPanel extends javax.swing.JPanel {
         jLabel3.setBounds(20, 120, 180, 20);
         add(txtRutaTemporales);
         txtRutaTemporales.setBounds(200, 120, 370, 23);
+        add(spinnerLimite);
+        spinnerLimite.setBounds(280, 190, 64, 23);
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnBuscarTemporalesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarTemporalesActionPerformed
@@ -126,7 +127,7 @@ public class PreferenciasPanel extends javax.swing.JPanel {
         String nuevaRutaGuardado = txtRutaTemporales.getText();
         
         boolean m3u = chkCrearM3u.isSelected();
-        String limite = txtLimiteVelocidad.getText();
+        String limite = spinnerLimite.getValue().toString();
         
         parentFrame.setRutaYtDlp(nuevaRutaYtDlp);
         parentFrame.setRutaGuardado(nuevaRutaGuardado);
@@ -160,7 +161,17 @@ public class PreferenciasPanel extends javax.swing.JPanel {
         txtRutaTemporales.setText(parentFrame.getRutaGuardado());
         
         chkCrearM3u.setSelected(parentFrame.isCrearM3u());
-        txtLimiteVelocidad.setText(parentFrame.getLimiteVelocidad());
+        String limite = parentFrame.getLimiteVelocidad();
+        int valorLimite = 0; //Valor por defecto si hay error
+        try {
+            //Intenta convertir el String guardado a un número
+            if (limite != null && !limite.isEmpty()){
+                valorLimite = Integer.parseInt(limite);
+            }
+        } catch (NumberFormatException e){
+                //Si falla (ej. estaba vacío), se queda en 0
+        }
+        spinnerLimite.setValue(valorLimite);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -171,7 +182,7 @@ public class PreferenciasPanel extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JTextField txtLimiteVelocidad;
+    private javax.swing.JSpinner spinnerLimite;
     private javax.swing.JTextField txtRutaTemporales;
     private javax.swing.JTextField txtRutaYtDlp;
     // End of variables declaration//GEN-END:variables

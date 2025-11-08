@@ -293,9 +293,9 @@ public class MainViewPanel extends javax.swing.JPanel {
         command.add(parentFrame.getRutaGuardado()+ "/%(title)s.%(ext)s");
         
         String limite = parentFrame.getLimiteVelocidad();
-        if (limite != null && !limite.trim().isEmpty()){
+        if (limite != null && !limite.trim().isEmpty() && !limite.equals("0")){
             command.add("-r");
-            command.add(limite);            
+            command.add(limite + "K");
         }
         command.add(url);
         //Ejecutar el SwingWorker
