@@ -129,11 +129,7 @@ public class PreferenciasPanel extends javax.swing.JPanel {
         boolean m3u = chkCrearM3u.isSelected();
         String limite = spinnerLimite.getValue().toString();
         
-        parentFrame.setRutaYtDlp(nuevaRutaYtDlp);
-        parentFrame.setRutaGuardado(nuevaRutaGuardado);
-        
-        parentFrame.setCrearM3u(m3u);
-        parentFrame.setLimiteVelocidad(limite);
+        parentFrame.guardarTodasLasPreferencias(nuevaRutaYtDlp, nuevaRutaGuardado, m3u, limite);
         parentFrame.mostrarVistaPrincipal();
     }//GEN-LAST:event_btnVolverActionPerformed
 

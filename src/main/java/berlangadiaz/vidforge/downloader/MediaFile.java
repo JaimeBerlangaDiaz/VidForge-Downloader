@@ -1,55 +1,70 @@
 package berlangadiaz.vidforge.downloader;
 
+// Imports necesarios para manejar archivos, fechas y tipos MIME
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * Clase "Modelo" que representa un archivo descargado en la biblioteca.
+ * Clase "Modelo" (el molde) para la Tarea 2.
+ * Representa un archivo descargado. Guarda toda la información
+ * que nos pide el cliente (nombre, tamaño, tipo, fecha).
  */
 public class MediaFile {
     
-    // --- Atributos ---
+    // Atributos que guardaremos en el JSON
     private String nombre;
     private String ruta;
-    private long tamanoEnBytes;
-    private String tipoMime; // Ej. "video/mp4"
-    private long fechaModificacion; // Se guarda como un número (timestamp)
-
+    private long tamanoBytes; // long para tamaños grandes
+    private String tipoMime;
+    private long fechaCreacionMs; // long para la fecha en milisegundos
+    
+    // --- Constructores ---
+    
     /**
-     * Constructor que crea un MediaFile a partir de un objeto java.io.File.
-     * @param file El archivo en el disco.
+     * Constructor principal. Recibe un objeto File (del disco)
+     * y extrae toda la información necesaria.
+     * * @param archivo El archivo físico del disco (ej. "video.mp4")
      */
-    public MediaFile(File file) {
-        this.nombre = file.getName();
-        this.ruta = file.getAbsolutePath();
-        this.tamanoEnBytes = file.length();
-        this.fechaModificacion = file.lastModified();
+    public MediaFile(File archivo) {
+        if (archivo == null || !archivo.exists()) {
+            throw new IllegalArgumentException("El archivo no puede ser nulo o no existe.");
+        }
         
-        // --- Obtener el Tipo MIME (puede ser complicado) ---
+        this.nombre = archivo.getName();
+        this.ruta = archivo.getAbsolutePath();
+        this.tamanoBytes = archivo.length();
+        
+        // --- Lógica para obtener el Tipo MIME y la Fecha ---
         try {
-            Path path = Paths.get(file.getAbsolutePath());
-            this.tipoMime = Files.probeContentType(path);
+            // Obtener el tipo MIME (ej. "video/mp4")
+            this.tipoMime = Files.probeContentType(archivo.toPath());
             
-            // Si Files.probeContentType falla (devuelve null), intentamos adivinar
-            if (this.tipoMime == null) {
-                if (nombre.endsWith(".mp4")) this.tipoMime = "video/mp4";
-                else if (nombre.endsWith(".mkv")) this.tipoMime = "video/x-matroska";
-                else if (nombre.endsWith(".webm")) this.tipoMime = "video/webm";
-                else if (nombre.endsWith(".mp3")) this.tipoMime = "audio/mpeg";
-                else this.tipoMime = "desconocido";
-            }
-        } catch (Exception e) {
-            this.tipoMime = "error";
+            // Obtener los atributos básicos del archivo
+            BasicFileAttributes attrs = Files.readAttributes(archivo.toPath(), BasicFileAttributes.class);
+            
+            // Guardar la fecha de creación en milisegundos (un número largo)
+            this.fechaCreacionMs = attrs.creationTime().toMillis();
+            
+        } catch (IOException e) {
+            System.err.println("Error al leer atributos del archivo: " + e.getMessage());
+            this.tipoMime = "desconocido";
+            this.fechaCreacionMs = System.currentTimeMillis(); // Pone la fecha de hoy
         }
     }
+    
+    /**
+     * Constructor vacío (necesario para que la biblioteca GSON funcione).
+     */
+    public MediaFile() {
+    }
 
-    // --- Getters (Métodos para leer los datos) ---
-    // La JTable usará estos métodos para obtener los valores
-
+    // --- Getters (Métodos para leer la información) ---
+    // (Gson los usa para crear el JSON)
+    
     public String getNombre() {
         return nombre;
     }
@@ -58,51 +73,48 @@ public class MediaFile {
         return ruta;
     }
 
-    public long getTamanoEnBytes() {
-        return tamanoEnBytes;
-    }
-
-    /**
-     * Devuelve el tamaño formateado como "KB" o "MB" para que sea legible.
-     * @return String del tamaño (ej. "10.5 MB")
-     */
-    public String getTamanoFormateado() {
-        double kilobytes = this.tamanoEnBytes / 1024.0;
-        double megabytes = kilobytes / 1024.0;
-        
-        if (megabytes > 1) {
-            return String.format("%.2f MB", megabytes); // Formato con 2 decimales
-        } else if (kilobytes > 1) {
-            return String.format("%.2f KB", kilobytes);
-        } else {
-            return String.format("%d Bytes", this.tamanoEnBytes);
-        }
+    public long getTamanoBytes() {
+        return tamanoBytes;
     }
 
     public String getTipoMime() {
         return tipoMime;
     }
 
-    public long getFechaModificacion() {
-        return fechaModificacion;
+    public long getFechaCreacionMs() {
+        return fechaCreacionMs;
     }
 
+    // --- Métodos de Ayuda (para la JTable) ---
+    
     /**
-     * Devuelve la fecha formateada como un String legible.
-     * @return String de la fecha (ej. "10/11/2025 08:30")
+     * Devuelve el tamaño en formato legible (ej. "10.5 MB").
+     * Esto lo usará nuestra JTable.
+     */
+    public String getTamanoFormateado() {
+        if (tamanoBytes < 1024) {
+            return tamanoBytes + " B";
+        }
+        int exp = (int) (Math.log(tamanoBytes) / Math.log(1024));
+        String pre = "KMGTPE".charAt(exp - 1) + "";
+        return String.format("%.1f %sB", tamanoBytes / Math.pow(1024, exp), pre);
+    }
+    
+    /**
+     * Devuelve la fecha en formato legible (ej. "28-10-2025 18:30").
+     * Esto lo usará nuestra JTable.
      */
     public String getFechaFormateada() {
-        // Formato: día/mes/año hora:minuto
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-        return sdf.format(new Date(this.fechaModificacion));
+        Date fecha = new Date(this.fechaCreacionMs);
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm");
+        return sdf.format(fecha);
     }
-
+    
     /**
-     * El método toString() es llamado por JComboBox y JList si no tienen un "Renderer".
-     * Por ahora, haremos que devuelva el nombre.
+     * Devuelve el objeto File original.
+     * Lo usaremos para poder BORRAR el archivo.
      */
-    @Override
-    public String toString() {
-        return nombre;
+    public File getFichero() {
+        return new File(this.ruta);
     }
 }

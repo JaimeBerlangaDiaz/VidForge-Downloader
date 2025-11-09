@@ -1,29 +1,88 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
+ * Panel de la Biblioteca de Medios (Tarea 2)
  */
 package berlangadiaz.vidforge.downloader;
+
+// --- Imports necesarios para la lógica ---
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.JFileChooser;
+import javax.swing.JComboBox;
+import javax.swing.JList;
+// --- Imports de nuestras clases ---
+import berlangadiaz.vidforge.downloader.GestorJson;
+import berlangadiaz.vidforge.downloader.MediaFile;
+import berlangadiaz.vidforge.downloader.ColumnaOrden;
+import berlangadiaz.vidforge.downloader.TipoMimeFiltro;
 
 /**
  *
  * @author jaimeberlangadiaz
  */
 public class BibliotecaPanel extends javax.swing.JPanel {
-    
+
     private MainFrame parentFrame;
-    private MediaFileTableModel tableModel;
+    private MediaFileTableModel tableModel; // El "motor" de la tabla
+
     /**
      * Creates new form BibliotecaPanel
      */
     public BibliotecaPanel(MainFrame parent) {
-        initComponents();
-        this.parentFrame = parent;
+        // 1. Carga el diseño que hiciste en la pestaña "Design"
+        initComponents(); 
         
-        // Creamos una instancia de nuestro "motor" de tabla
+        // 2. Guarda la referencia al "cerebro"
+        this.parentFrame = parent; 
+        
+        // --- Conectar los "Motores" ---
+            
+        // 3. Conecta el "motor" (TableModel) a la JTable
         tableModel = new MediaFileTableModel();
-        
-        // "Instala" el motor en la JTable que diseñamos
         tablaArchivos.setModel(tableModel);
+        
+        // 4. Configura el JComboBox<ColumnaOrden> (un <object>)
+        cmbOrdenarPor.setModel(new javax.swing.DefaultComboBoxModel<>(new ColumnaOrden[] {
+            new ColumnaOrden("Nombre", 0),
+            new ColumnaOrden("Tamaño", 1),
+            new ColumnaOrden("Fecha", 2)
+        }));
+        
+        // 5. Configura el JList<TipoMimeFiltro> (un <object>)
+        listFiltroTipo.setModel(new javax.swing.AbstractListModel<TipoMimeFiltro>() {
+            TipoMimeFiltro[] filtros = new TipoMimeFiltro[] {
+                new TipoMimeFiltro("Todos", "*"),
+                new TipoMimeFiltro("Vídeos", "video/"),
+                new TipoMimeFiltro("Audios", "audio/")
+            };
+            public int getSize() { return filtros.length; }
+            public TipoMimeFiltro getElementAt(int i) { return filtros[i]; }
+        });
+        listFiltroTipo.setSelectedIndex(0); // Dejamos "Todos" seleccionado
+        
+        // --- Fin de la conexión de "Motores" ---
+    }
+    
+    /**
+     * Lee el log.json (usando GestorJson) y carga los datos en la JTable.
+     */
+    public void cargarDatosDelJson() {
+        System.out.println("Cargando biblioteca desde JSON...");
+        
+        // 1. Limpiar la tabla de datos antiguos
+        tableModel.clear();
+
+        // 2. Obtener la ruta de guardado (donde está el log)
+        String rutaCarpetaGuardado = parentFrame.getRutaGuardado();
+        
+        // 3. Llamar al GestorJson
+        GestorJson gestor = new GestorJson(rutaCarpetaGuardado);
+        List<MediaFile> archivos = gestor.leerArchivos();
+        
+        // 4. Pasar los archivos al "motor" de la tabla
+        tableModel.setArchivos(archivos);
+        
+        System.out.println("Biblioteca cargada. Encontrados " + archivos.size() + " registros.");
     }
 
     /**
@@ -36,17 +95,38 @@ public class BibliotecaPanel extends javax.swing.JPanel {
     private void initComponents() {
 
         panelFiltros = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jScrollPaneFiltro = new javax.swing.JScrollPane();
+        listFiltroTipo = new javax.swing.JList<>();
+        jLabel2 = new javax.swing.JLabel();
+        cmbOrdenarPor = new javax.swing.JComboBox<>();
         jScrollPaneTabla = new javax.swing.JScrollPane();
         tablaArchivos = new javax.swing.JTable();
         panelAcciones = new javax.swing.JPanel();
         btnActualizar = new javax.swing.JButton();
-        btnBuscar = new javax.swing.JButton();
-        txtBuscar = new javax.swing.JTextField();
         btnBorrar = new javax.swing.JButton();
+        txtBuscar = new javax.swing.JTextField();
+        btnBuscar = new javax.swing.JButton();
 
         setLayout(new java.awt.BorderLayout());
 
         panelFiltros.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+
+        jLabel1.setText("Filtrar Por:");
+        panelFiltros.add(jLabel1);
+
+        jScrollPaneFiltro.setPreferredSize(new java.awt.Dimension(120, 80));
+
+        jScrollPaneFiltro.setViewportView(listFiltroTipo);
+
+        panelFiltros.add(jScrollPaneFiltro);
+
+        jLabel2.setText("Ordenar por:");
+        panelFiltros.add(jLabel2);
+
+        cmbOrdenarPor.setPreferredSize(new java.awt.Dimension(120, 60));
+        panelFiltros.add(cmbOrdenarPor);
+
         add(panelFiltros, java.awt.BorderLayout.PAGE_START);
 
         tablaArchivos.setModel(new javax.swing.table.DefaultTableModel(
@@ -64,7 +144,6 @@ public class BibliotecaPanel extends javax.swing.JPanel {
 
         add(jScrollPaneTabla, java.awt.BorderLayout.CENTER);
 
-        panelAcciones.setMinimumSize(new java.awt.Dimension(100, 100));
         panelAcciones.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
         btnActualizar.setText("Actualizar Lista");
@@ -75,14 +154,24 @@ public class BibliotecaPanel extends javax.swing.JPanel {
         });
         panelAcciones.add(btnActualizar);
 
-        btnBuscar.setText("Buscar:");
-        panelAcciones.add(btnBuscar);
+        btnBorrar.setText("Borrar Seleccionado:");
+        btnBorrar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBorrarActionPerformed(evt);
+            }
+        });
+        panelAcciones.add(btnBorrar);
 
         txtBuscar.setColumns(20);
         panelAcciones.add(txtBuscar);
 
-        btnBorrar.setText("Borrar Selecionado");
-        panelAcciones.add(btnBorrar);
+        btnBuscar.setText("Buscar");
+        btnBuscar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBuscarActionPerformed(evt);
+            }
+        });
+        panelAcciones.add(btnBuscar);
 
         add(panelAcciones, java.awt.BorderLayout.PAGE_END);
     }// </editor-fold>//GEN-END:initComponents
@@ -90,33 +179,109 @@ public class BibliotecaPanel extends javax.swing.JPanel {
     private void btnActualizarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnActualizarActionPerformed
         cargarDatosDelJson();
     }//GEN-LAST:event_btnActualizarActionPerformed
-    /**
-     * Lee la carpeta de Descargas (guardada en MainFrame),
-     * busca archivos de vídeo/audio, y los carga en la JTable.
-     */
-    public void cargarDatosDelJson() {
-        System.out.println("Cargando bliblioteca desde JSON..."); // Mensaje para depuración
-        
-        //Obtener la ruta de guardado (donde esta el log)
-        String rutaCarpetaGuardado = parentFrame.getRutaGuardado();
-        
-        //LLamar al GestorJson
-        GestorJson gestor = new GestorJson(rutaCarpetaGuardado);
-        java.util.List<MediaFile> archivos = gestor.leerArchivos();
-        
-        // Pasar los archivos al "motor" de la tabla
-        tableModel.setArchivos(archivos);
-        
-        System.out.println("Bliblioteca cargada. Encontrados " + archivos.size()+ " registros.");
 
-        
-    }
+    private void btnBorrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBorrarActionPerformed
+        // 1. Averiguar qué fila está seleccionada
+        int filaSeleccionada = tablaArchivos.getSelectedRow();
+
+        // 2. Comprobar si realmente hay una fila seleccionada
+        if (filaSeleccionada == -1) {
+            // Si no hay nada seleccionado, mostrar un error y salir
+            javax.swing.JOptionPane.showMessageDialog(this,
+                    "Por favor, selecciona un archivo de la tabla para borrar.",
+                    "Nada seleccionado", javax.swing.JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 3. Obtener el objeto MediaFile de esa fila
+        // (Usamos el 'tableModel' para traducir el índice de la fila al objeto)
+        MediaFile archivoABorrar = tableModel.getFileAt(filaSeleccionada);
+
+        // 4. Pedir confirmación (¡MUY IMPORTANTE!)
+        int confirmacion = javax.swing.JOptionPane.showConfirmDialog(this,
+                "¿Estás seguro de que quieres borrar permanentemente el archivo:\n"
+                + archivoABorrar.getNombre() + "?",
+                "Confirmar Borrado",
+                javax.swing.JOptionPane.YES_NO_OPTION,
+                javax.swing.JOptionPane.WARNING_MESSAGE);
+
+        // 5. Si el usuario pulsa "Sí" (YES_OPTION es 0)
+        if (confirmacion == javax.swing.JOptionPane.YES_OPTION) {
+            try {
+                // 6. Borrar el archivo del DISCO
+                java.io.File ficheroEnDisco = archivoABorrar.getFichero();
+                if (ficheroEnDisco.delete()) {
+                    // Si se borra del disco, lo borramos del JSON
+                    
+                    // 7. Borrar la entrada del log.json
+                    String rutaCarpetaGuardado = parentFrame.getRutaGuardado();
+                    GestorJson gestor = new GestorJson(rutaCarpetaGuardado);
+                    gestor.eliminarArchivo(archivoABorrar); // (Este método ya lo creamos en GestorJson)
+
+                    // 8. Refrescar la tabla
+                    cargarDatosDelJson();
+                    
+                    javax.swing.JOptionPane.showMessageDialog(this,
+                            "Archivo borrado con éxito.",
+                            "Borrado", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    // Si falla el borrado del disco (ej. archivo protegido)
+                    javax.swing.JOptionPane.showMessageDialog(this,
+                            "No se pudo borrar el archivo del disco.",
+                            "Error de Borrado", javax.swing.JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (Exception e) {
+                javax.swing.JOptionPane.showMessageDialog(this,
+                        "Error al intentar borrar el archivo: " + e.getMessage(),
+                        "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        // Si el usuario pulsa "No", no hacemos nada.
+    }//GEN-LAST:event_btnBorrarActionPerformed
+
+    private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
+        // 1. Coger el texto de la caja de búsqueda (y ponerlo en minúsculas)
+        String textoBusqueda = txtBuscar.getText().toLowerCase();
+
+        // 2. Coger la lista COMPLETA de archivos desde el JSON
+        String rutaCarpetaGuardado = parentFrame.getRutaGuardado();
+        GestorJson gestor = new GestorJson(rutaCarpetaGuardado);
+        java.util.List<MediaFile> listaCompleta = gestor.leerArchivos();
+
+        // 3. Si la barra de búsqueda está vacía, mostrarlo todo
+        if (textoBusqueda.isEmpty()) {
+            tableModel.setArchivos(listaCompleta);
+            return; // Salimos del método
+        }
+
+        // 4. Si hay texto, filtrar la lista
+        java.util.List<MediaFile> listaFiltrada = new java.util.ArrayList<>();
+
+        // 5. Recorrer la lista completa
+        for (MediaFile archivo : listaCompleta) {
+            // Comprobar si el nombre del archivo (en minúsculas) contiene el texto de búsqueda
+            if (archivo.getNombre().toLowerCase().contains(textoBusqueda)) {
+                // Si lo contiene, lo añadimos a la lista filtrada
+                listaFiltrada.add(archivo);
+            }
+        }
+
+        // 6. Finalmente, le decimos al "motor" de la tabla que muestre
+        //    SOLAMENTE la lista filtrada
+        tableModel.setArchivos(listaFiltrada);
+    }//GEN-LAST:event_btnBuscarActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnActualizar;
     private javax.swing.JButton btnBorrar;
     private javax.swing.JButton btnBuscar;
+    private javax.swing.JComboBox<ColumnaOrden> cmbOrdenarPor;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JScrollPane jScrollPaneFiltro;
     private javax.swing.JScrollPane jScrollPaneTabla;
+    private javax.swing.JList<TipoMimeFiltro> listFiltroTipo;
     private javax.swing.JPanel panelAcciones;
     private javax.swing.JPanel panelFiltros;
     private javax.swing.JTable tablaArchivos;

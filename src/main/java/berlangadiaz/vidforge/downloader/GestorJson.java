@@ -19,9 +19,10 @@ import java.util.List;
  * de objetos MediaFile en un archivo log.json.
  */
 public class GestorJson {
-
+    private final Gson gson;
+    private final java.io.File directorioBase;
     private final String RUTA_LOG_JSON; // Ruta completa al archivo log.json
-    private final Gson gson;          // La herramienta "traductora"
+    private final String CONFIG_FILE_NAME = "config.json";
 
     /**
      * Constructor.
@@ -34,6 +35,7 @@ public class GestorJson {
         
         // Creamos un Gson "bonito" (con indentación)
         this.gson = new GsonBuilder().setPrettyPrinting().create();
+        this.directorioBase = new java.io.File(rutaCarpetaGuardado);
     }
 
     /**
@@ -110,6 +112,54 @@ public class GestorJson {
             
         } catch (IOException e) {
             System.err.println("Error al guardar en log.json: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Clase auxiliar para guardar las opciones simples de configuración
+     */
+    public static class Configuracion{
+        String rutaYtDlp;
+        String rutaGuardado;
+        boolean crearM3u;
+        String limiteVelocidad;
+    }
+    
+    /**
+     * Guarda las preferencias de la aplicación en config.json
+     */
+    public void guardarConfiguracion(String ytDlp, String guardado, boolean m3u, String limite) {
+        File configFile = new File(directorioBase, CONFIG_FILE_NAME);
+
+        Configuracion config = new Configuracion();
+        config.rutaYtDlp = ytDlp;
+        config.rutaGuardado = guardado;
+        config.crearM3u = m3u;
+        config.limiteVelocidad = limite;
+
+        try (java.io.FileWriter writer = new java.io.FileWriter(configFile)) {
+            gson.toJson(config, writer);
+        } catch (IOException e) {
+            System.err.println("Error al guardar la configuración: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Lee las preferencias de la aplicación desde config.json.
+     * Retorna null si el archivo no existe o hay error.
+     */
+    public Configuracion leerConfiguracion() {
+        File configFile = new File(directorioBase, CONFIG_FILE_NAME);
+        if (!configFile.exists()) {
+            return null; // No hay configuración guardada
+        }
+
+        try (java.io.Reader reader = new java.io.FileReader(configFile)) {
+            // Leemos el objeto de configuración del JSON
+            return gson.fromJson(reader, Configuracion.class);
+        } catch (IOException e) {
+            System.err.println("Error al leer la configuración: " + e.getMessage());
+            return null;
         }
     }
 }

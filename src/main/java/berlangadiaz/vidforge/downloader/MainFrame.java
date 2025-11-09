@@ -4,6 +4,7 @@
  */
 package berlangadiaz.vidforge.downloader;
 import berlangadiaz.vidforge.downloader.AboutDialog;
+import berlangadiaz.vidforge.downloader.GestorJson;
 /**
  *
  * @author jaimeberlangadiaz
@@ -22,6 +23,17 @@ public class MainFrame extends javax.swing.JFrame {
      * Creates new form MainFrame
      */
     public MainFrame() {
+        //Intenta cargar la configuración guardada.
+        GestorJson gestor = new GestorJson(rutaGuardado);
+        GestorJson.Configuracion config = gestor.leerConfiguracion();
+        
+        //Si hay configuración, sobreescribe los valores por defecto
+        if (config != null){
+            rutaYtDlp = config.rutaYtDlp;
+            rutaGuardado = config.rutaGuardado;
+            crearM3u = config.crearM3u;
+            limiteVelocidad = config.limiteVelocidad;
+        }
         initComponents();
         setLocationRelativeTo(null);
         mainViewPanel = new MainViewPanel(this);
@@ -31,6 +43,7 @@ public class MainFrame extends javax.swing.JFrame {
         
         panelContenedor.revalidate();
         panelContenedor.repaint();
+        
     }
 
     /**
@@ -236,6 +249,16 @@ public class MainFrame extends javax.swing.JFrame {
     //Getters y Setters
     public String getRutaYtDlp(){
         return this.rutaYtDlp;
+    }
+    /**
+     * Guarda todas las preferencias en las variables de clase y en el archivo config.json.
+     */
+    public void guardarTodasLasPreferencias(String ytDlp, String guardado, boolean m3u, String limite){
+        //Guardar en las variables de la clase
+        this.setRutaYtDlp(ytDlp);
+        this.setRutaGuardado(guardado);
+        this.setCrearM3u(m3u);
+        this.setLimiteVelocidad(limite);
     }
     
     public void setRutaYtDlp(String ruta){
