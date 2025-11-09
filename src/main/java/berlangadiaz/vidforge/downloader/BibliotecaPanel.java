@@ -20,6 +20,10 @@ import berlangadiaz.vidforge.downloader.TipoMimeFiltro;
  *
  * @author jaimeberlangadiaz
  */
+/**
+ *
+ * @author jaimeberlangadiaz
+ */
 public class BibliotecaPanel extends javax.swing.JPanel {
 
     private MainFrame parentFrame;
@@ -29,7 +33,7 @@ public class BibliotecaPanel extends javax.swing.JPanel {
      * Creates new form BibliotecaPanel
      */
     public BibliotecaPanel(MainFrame parent) {
-        // 1. Carga el diseño que hiciste en la pestaña "Design"
+        // 1. Carga el diseño
         initComponents(); 
         
         // 2. Guarda la referencia al "cerebro"
@@ -60,31 +64,103 @@ public class BibliotecaPanel extends javax.swing.JPanel {
         });
         listFiltroTipo.setSelectedIndex(0); // Dejamos "Todos" seleccionado
         
-        // --- Fin de la conexión de "Motores" ---
+        // --- CONECTAR EVENTOS ---
+        // Esto garantiza que la tabla se refresca cuando se cambia el filtro o el orden
+        listFiltroTipo.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            @Override
+            public void valueChanged(javax.swing.event.ListSelectionEvent e) {
+                if (!e.getValueIsAdjusting()) {
+                    aplicarFiltrosYOrden();
+                }
+            }
+        });
+        
+        cmbOrdenarPor.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                aplicarFiltrosYOrden();
+            }
+        });
+        
+        // --- FIN DE LA CONEXIÓN DE MOTORES ---
+        
+    }
+    
+     /**
+     * Lanza la carga de datos. Es un simple lanzador del método principal.
+     */
+    public void cargarDatosDelJson() {
+        aplicarFiltrosYOrden();
     }
     
     /**
-     * Lee el log.json (usando GestorJson) y carga los datos en la JTable.
+     * ¡EL MÉTODO FINAL DE LA TAREA 2!
+     * Carga los datos del JSON, los FILTRA (JList), los ORDENA (JComboBox) 
+     * y los muestra en la tabla.
      */
-    public void cargarDatosDelJson() {
-        System.out.println("Cargando biblioteca desde JSON...");
+    public void aplicarFiltrosYOrden() {
+        System.out.println("Aplicando filtros y ordenación..."); 
         
-        // 1. Limpiar la tabla de datos antiguos
-        tableModel.clear();
-
-        // 2. Obtener la ruta de guardado (donde está el log)
+        // 1. Coger la lista COMPLETA de archivos desde el JSON
         String rutaCarpetaGuardado = parentFrame.getRutaGuardado();
-        
-        // 3. Llamar al GestorJson
         GestorJson gestor = new GestorJson(rutaCarpetaGuardado);
-        List<MediaFile> archivos = gestor.leerArchivos();
-        
-        // 4. Pasar los archivos al "motor" de la tabla
-        tableModel.setArchivos(archivos);
-        
-        System.out.println("Biblioteca cargada. Encontrados " + archivos.size() + " registros.");
-    }
+        java.util.List<MediaFile> listaCompleta = gestor.leerArchivos();
 
+        // 2. Obtener el estado de ordenación/dirección del MainFrame
+        int columnaOrden = parentFrame.getColumnaOrdenActual();
+        final boolean ASCENDENTE = parentFrame.isOrdenAscendente();
+
+        // 3. Obtener el filtro seleccionado de la JList (Tipo MIME)
+        TipoMimeFiltro filtroMime = listFiltroTipo.getSelectedValue();
+        if (filtroMime == null) { return; }
+        String tipoMime = filtroMime.getPrefijoMime(); // Ej: "video/" o "*"
+
+        // 4. Filtrar la lista
+        java.util.List<MediaFile> listaFiltrada = new java.util.ArrayList<>();
+        if (tipoMime.equals("*")) {
+            // Si es "Todos", añade la lista completa
+            listaFiltrada.addAll(listaCompleta);
+        } else {
+            // Si es "video/" o "audio/", filtra la lista
+            for (MediaFile archivo : listaCompleta) {
+                if (archivo.getTipoMime().startsWith(tipoMime)) {
+                    listaFiltrada.add(archivo);
+                }
+            }
+        }
+        
+        // 5. Ordenar la lista filtrada (usando la lógica bidireccional del Comparador)
+        java.util.Collections.sort(listaFiltrada, new java.util.Comparator<MediaFile>() {
+            @Override
+            public int compare(MediaFile f1, MediaFile f2) {
+                int resultadoComparacion;
+                
+                switch (columnaOrden) {
+                    case 1: // Tamaño
+                        resultadoComparacion = Long.compare(f1.getTamanoBytes(), f2.getTamanoBytes());
+                        break;
+                    case 2: // Fecha
+                        resultadoComparacion = Long.compare(f1.getFechaCreacionMs(), f2.getFechaCreacionMs());
+                        break;
+                    case 0: // Nombre (por defecto)
+                    default:
+                        resultadoComparacion = f1.getNombre().compareToIgnoreCase(f2.getNombre());
+                        break;
+                }
+
+                // Aplicamos la dirección: si es descendente (y la comparación no es igual), invertimos el resultado
+                if (ASCENDENTE) {
+                    return resultadoComparacion; // Devolvemos A->Z (o más pequeño a más grande)
+                } else {
+                    return -resultadoComparacion; // Devolvemos Z->A (o más grande a más pequeño)
+                }
+            }
+        });
+
+        // 6. Finalmente, le decimos al "motor" de la tabla que muestre la lista
+        tableModel.setArchivos(listaFiltrada);
+        System.out.println("Carga finalizada. Registros mostrados: " + listaFiltrada.size());
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -125,6 +201,11 @@ public class BibliotecaPanel extends javax.swing.JPanel {
         panelFiltros.add(jLabel2);
 
         cmbOrdenarPor.setPreferredSize(new java.awt.Dimension(120, 60));
+        cmbOrdenarPor.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cmbOrdenarPorActionPerformed(evt);
+            }
+        });
         panelFiltros.add(cmbOrdenarPor);
 
         add(panelFiltros, java.awt.BorderLayout.PAGE_START);
@@ -177,7 +258,8 @@ public class BibliotecaPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnActualizarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnActualizarActionPerformed
-        cargarDatosDelJson();
+        //Llama al método que carga y aplica filtros
+        aplicarFiltrosYOrden();
     }//GEN-LAST:event_btnActualizarActionPerformed
 
     private void btnBorrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBorrarActionPerformed
@@ -268,8 +350,32 @@ public class BibliotecaPanel extends javax.swing.JPanel {
 
         // 6. Finalmente, le decimos al "motor" de la tabla que muestre
         //    SOLAMENTE la lista filtrada
-        tableModel.setArchivos(listaFiltrada);
+        tableModel.setArchivos(listaFiltrada);        
     }//GEN-LAST:event_btnBuscarActionPerformed
+
+    private void cmbOrdenarPorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbOrdenarPorActionPerformed
+        ColumnaOrden nuevaColumna = (ColumnaOrden) cmbOrdenarPor.getSelectedItem();
+        int nuevoIndice = nuevaColumna.getIndiceColumna();
+        
+        // 1.Obtener el estado actual del MainFrame
+        int columnaAnterior = parentFrame.getColumnaOrdenActual();
+        boolean ordenActual = parentFrame.isOrdenAscendente();
+        
+        // 2.Comprobar si es la misma columna
+        if (columnaAnterior == nuevoIndice){
+            //Si es la misma invertimos la dirección. (True se vuelve false)
+            parentFrame.setOrdenAscendente(!ordenActual);
+        } else {
+            //Si es una columna nueva , reiniciamos a Ascendente(True).
+            parentFrame.setOrdenAscendente(true);
+        }
+        
+        // 3. Guardar la nueva columna en el MainFrame
+        parentFrame.setColumnaOrdenActual(nuevoIndice);
+        
+        // 4. Aplicar el filtro y orden
+        aplicarFiltrosYOrden();
+    }//GEN-LAST:event_cmbOrdenarPorActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -298,7 +298,22 @@ public class MainFrame extends javax.swing.JFrame {
         panelContenedor.revalidate();
         panelContenedor.repaint();
     }
+    // Variables para la ordenación de la Biblioteca
+    private int columnaOrdenActual = 0; //0=Nombre, 1= Tamaño, 2= Fecha (por defecto: Nombre)
+    private boolean ordenAscendente = true; //true= A->Z (ascendente), false = Z->A (descendente)
     
+    public int getColumnaOrdenActual(){
+        return columnaOrdenActual;
+    }
+    public void setColumnaOrdenActual(int columnaOrdenActual){
+        this.columnaOrdenActual = columnaOrdenActual;
+    }
+    public boolean isOrdenAscendente(){
+        return ordenAscendente;
+    }
+    public void setOrdenAscendente(boolean ordenAscendente){
+        this.ordenAscendente = ordenAscendente;
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem itemAcerdaDe;
     private javax.swing.JMenuItem itemMostrarBiblioteca;
