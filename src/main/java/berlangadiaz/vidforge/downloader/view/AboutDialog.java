@@ -1,4 +1,4 @@
-package berlangadiaz.vidforge.downloader;
+package berlangadiaz.vidforge.downloader.view;
 /**
  * @author: Jaime Berlanga Diaz
  */

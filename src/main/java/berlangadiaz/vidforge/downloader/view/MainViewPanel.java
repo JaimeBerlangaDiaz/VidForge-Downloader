@@ -2,9 +2,10 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
-package berlangadiaz.vidforge.downloader;
+package berlangadiaz.vidforge.downloader.view;
 
 // IMPORTACIONES NECESARIAS (¡Añadidas!)
+import berlangadiaz.vidforge.downloader.model.DownloadWorker;
 import javax.swing.SwingWorker;
 import java.util.List;
 import java.util.ArrayList;
@@ -22,11 +23,10 @@ import javax.swing.DefaultComboBoxModel;
  */
 public class MainViewPanel extends javax.swing.JPanel {
 
-    // ¡CORREGIDO! Esta es la ÚNICA declaración
     private String ultimoArchivoDescargado = "";
     
-    // (Esta variable la necesitarás para el 'parentFrame' de PreferenciasPanel, 
-    // la añado aquí para que el código compile si lo usas)
+    // (Esta variable la necesitaremos para el 'parentFrame' de PreferenciasPanel, 
+    // la añado aquí para que el código compile si lo usamos
     private MainFrame parentFrame; 
     
     private DefaultComboBoxModel<String> videoFormatsModel;
@@ -36,31 +36,28 @@ public class MainViewPanel extends javax.swing.JPanel {
      * Creates new form MainViewPanel
      * * ¡CORREGIDO! He añadido el 'MainFrame parent' al constructor, 
      * ya que lo necesitarás para que funcione el intercambio de paneles.
+     * @param parent
      */
-    public MainViewPanel(MainFrame parent) { 
-        String[] videoFormats = {"mp4","mkv","webm"};
-        videoFormatsModel = new DefaultComboBoxModel<>(videoFormats);
-        String[] audioFormats = {"mp3","m4a","wav","flac"};
-        audioFormatsModel = new DefaultComboBoxModel<>(audioFormats);
+    public MainViewPanel(MainFrame parent) {
         initComponents();
         this.parentFrame = parent; 
+        // Inicializar los Modelos de JComboBox (Asumo que videoFormatsModel, etc., están declarados arriba)
+        String[] videoFormats = {"mp4","mkv","webm"};
+        videoFormatsModel = new javax.swing.DefaultComboBoxModel<>(videoFormats);
+        String[] audioFormats = {"mp3","m4a","wav","flac"};
+        audioFormatsModel = new javax.swing.DefaultComboBoxModel<>(audioFormats);
         
-        // 1. Obtener la acción de "pegar" que ya existe en Swing
-        javax.swing.Action pasteAction = txtUrl.getActionMap().get("paste");
+        // Conectar los modelos y la interfaz por defecto
+        cmbFormato.setModel(videoFormatsModel);
 
-        // 2. Definir la combinación de teclas "Comando + V"
-        // (META_DOWN_MASK es la tecla "Comando" en Java para Mac)
+        // Arreglo para PEGAR (Cmd+V) en macOS
+        javax.swing.Action pasteAction = txtUrl.getActionMap().get("paste");
         javax.swing.KeyStroke commandV = javax.swing.KeyStroke.getKeyStroke(
                 java.awt.event.KeyEvent.VK_V,
                 java.awt.event.InputEvent.META_DOWN_MASK
         );
-
-        // 3. Registrar "Comando + V" para que ejecute la acción de "pegar"
         txtUrl.getInputMap().put(commandV, "paste");
-        
-        cmbFormato.setModel(videoFormatsModel);
     }
-
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -108,7 +105,7 @@ public class MainViewPanel extends javax.swing.JPanel {
         add(jLabel1);
         jLabel1.setBounds(20, 30, 80, 20);
 
-        txtUrl.setText("Pega Aquí la URL del Vídeo");
+        txtUrl.setToolTipText("Pega Aquí la URL del Vídeo");
         add(txtUrl);
         txtUrl.setBounds(100, 30, 440, 23);
 
@@ -351,7 +348,12 @@ public class MainViewPanel extends javax.swing.JPanel {
         return this.ultimoArchivoDescargado;
     }
 
-
+    /**
+     * Permite a otras clases como DownloadWorker Habilitar/Deshabilitar el botón Descargar.
+     */
+    public void setBotonDescargarHabilitado(boolean enabled){
+        btnDescargar.setEnabled(enabled);
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAbrirVideo;
     private javax.swing.JButton btnDescargar;

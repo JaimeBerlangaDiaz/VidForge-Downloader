@@ -1,4 +1,4 @@
-package berlangadiaz.vidforge.downloader;
+package berlangadiaz.vidforge.downloader.model;
 
 // Imports necesarios para manejar archivos, fechas y tipos MIME
 import java.io.File;

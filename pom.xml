@@ -6,43 +6,56 @@
     <version>1.0.0</version>
     <packaging>jar</packaging>
     
-    <!-- ¡AÑADIDO! Información básica del proyecto -->
     <name>VidForge Downloader</name>
     <description>Una GUI para yt-dlp creada para la tarea DI01.</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>24</maven.compiler.release>
-        <!-- ¡CORREGIDO! La clase principal real es MainFrame, no la clase borrada -->
-        <exec.mainClass>berlangadiaz.vidforge.downloader.MainFrame</exec.mainClass>
-    </properties>
-    
+        <exec.mainClass>berlangadiaz.vidforge.downloader.view.MainFrame</exec.mainClass>
+    </properties>    
     <dependencies>
-        <!-- Dependencia para manejar JSON (la única que necesitamos) -->
+        <!-- Dependencia para manejar JSON -->
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>2.10.1</version>
         </dependency>
-    </dependencies>
-    <!-- Esto le dice a Maven cómo "construir" el archivo .jar final -->
+    </dependencies>    
     <build>
+        <resources>
+            <resource>
+                <!-- Indica que la carpeta src/main/resources debe copiarse -->
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+            </resource>
+        </resources>        
         <plugins>
+            <!-- Plugin para copiar recursos no filtrados (como imágenes) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <nonFilteredFileExtensions>
+                        <nonFilteredFileExtension>png</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>jpg</nonFilteredFileExtension>
+                    </nonFilteredFileExtensions>
+                </configuration>
+            </plugin>            
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.3.0</version> <!-- Usar una versión moderna del plugin -->
+                <version>3.3.0</version>
                 <configuration>
                     <archive>
                         <manifest>
-                            <!-- Esta es la línea clave: -->
-                            <!-- Escribe la clase 'main' dentro del JAR, -->
-                            <!-- para que el sistema sepa qué ejecutar al hacer doble clic -->
-                            <mainClass>berlangadiaz.vidforge.downloader.MainFrame</mainClass>
+                            <!-- Clase de entrada para el JAR ejecutable -->
+                            <mainClass>berlangadiaz.vidforge.downloader.view.MainFrame</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
-            </plugin>
+            </plugin>            
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -54,6 +67,5 @@
                 </configuration>
             </plugin>
         </plugins>
-    </build>
-    
+    </build>   
 </project>

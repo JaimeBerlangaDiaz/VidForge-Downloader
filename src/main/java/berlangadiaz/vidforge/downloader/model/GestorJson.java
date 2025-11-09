@@ -1,4 +1,4 @@
-package berlangadiaz.vidforge.downloader;
+package berlangadiaz.vidforge.downloader.model;
 
 // Imports de Google Gson (el "traductor" de JSON)
 import com.google.gson.Gson;
@@ -119,10 +119,10 @@ public class GestorJson {
      * Clase auxiliar para guardar las opciones simples de configuración
      */
     public static class Configuracion{
-        String rutaYtDlp;
-        String rutaGuardado;
-        boolean crearM3u;
-        String limiteVelocidad;
+        public String rutaYtDlp;
+        public String rutaGuardado;
+        public boolean crearM3u;
+        public String limiteVelocidad;
     }
     
     /**

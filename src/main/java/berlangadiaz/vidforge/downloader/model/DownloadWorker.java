@@ -1,6 +1,8 @@
-package berlangadiaz.vidforge.downloader;
+package berlangadiaz.vidforge.downloader.model;
 
 // Imports necesarios
+import berlangadiaz.vidforge.downloader.view.MainFrame;
+import berlangadiaz.vidforge.downloader.view.MainViewPanel;
 import javax.swing.SwingWorker;
 import javax.swing.JProgressBar;
 import javax.swing.JTextArea;
@@ -12,6 +14,8 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.lang.ProcessBuilder;
 import java.lang.Process;
+import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
 
 
 /**
@@ -127,39 +131,62 @@ public class DownloadWorker extends SwingWorker<String, String> {
         try {
             String resultado = get(); // Coge el "¡Descarga completada!"
 
-            // Si la descarga fue un éxito, lo guardamos en el JSON
             if (resultado.contains("ÉXITO")) {
+                // --- 1. Lógica de persistencia (JSON) ---
                 
-                // 1. Coge la ruta del archivo que guardamos (ej. /Users/.../video.mp4)
+                // Coge la ruta del archivo que guardamos
                 String rutaArchivoDescargado = mainView.getUltimoArchivoDescargado();
-                
+
                 if (rutaArchivoDescargado != null && !rutaArchivoDescargado.isEmpty()) {
-                    // 2. Crea el objeto File
                     java.io.File file = new java.io.File(rutaArchivoDescargado);
-                    
-                    // 3. Crea el objeto MediaFile (el "molde")
-                    MediaFile mediaFile = new MediaFile(file);
-                    
-                    // 4. Coge la ruta de guardado (ej. /Users/.../Downloads)
-                    String rutaCarpetaGuardado = parentFrame.getRutaGuardado();
-                    
-                    // 5. Llama al GestorJson para añadirlo al log
-                    GestorJson gestor = new GestorJson(rutaCarpetaGuardado);
-                    gestor.anadirArchivo(mediaFile);
-                    
-                    System.out.println("Añadido al log.json: " + mediaFile.getNombre());
+
+                    if (file.exists()) {
+                        // Crea el objeto MediaFile
+                        MediaFile mediaFile = new MediaFile(file);
+
+                        // Coge la ruta de guardado (donde está el log.json)
+                        String rutaCarpetaGuardado = parentFrame.getRutaGuardado();
+
+                        // Llama al GestorJson para añadirlo al log
+                        GestorJson gestor = new GestorJson(rutaCarpetaGuardado);
+                        gestor.anadirArchivo(mediaFile);
+                    }
                 }
+                
+                // --- 2. PREPARAR EL ICONO PARA EL DIÁLOGO EMERGENTE ---
+                ImageIcon successIcon = null;
+                try {
+                    // Carga la imagen desde la ruta que ya funciona (el formato debe ser .png)
+                    java.net.URL imageUrl = Thread.currentThread().getContextClassLoader().getResource("images/success_icon.png");
+                    
+                    if (imageUrl != null) {
+                        successIcon = new ImageIcon(imageUrl);
+                        // Redimensionar a un tamaño de diálogo estándar (32x32 píxeles)
+                        java.awt.Image img = successIcon.getImage().getScaledInstance(32, 32, java.awt.Image.SCALE_SMOOTH);
+                        successIcon = new ImageIcon(img);
+                    } 
+                } catch (Exception e) {
+                    System.err.println("Error al preparar icono para JOptionPane: " + e.getMessage());
+                }
+                // --- FIN DE PREPARAR ICONO ---
+
+                // --- 3. MOSTRAR DIÁLOGO (CON ICONO PERSONALIZADO) ---
+                // Usamos el overload con 5 parámetros (mensaje, título, tipo de mensaje, icono)
+                JOptionPane.showMessageDialog(mainView, resultado,
+                        "Descarga Completada", JOptionPane.INFORMATION_MESSAGE, successIcon); 
+                
+            } else {
+                // Si falla (usa el icono de ERROR por defecto)
+                JOptionPane.showMessageDialog(mainView, resultado,
+                        "Error de Descarga", JOptionPane.ERROR_MESSAGE);
             }
-            // --- FIN DE LÓGICA JSON ---
-
-            JOptionPane.showMessageDialog(mainView, resultado,
-                    "Estado de la Descarga", JOptionPane.INFORMATION_MESSAGE);
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(mainView,
-                    "Error al finalizar: " + e.getMessage(), "Error",
-                    JOptionPane.ERROR_MESSAGE);
+        } catch (InterruptedException | java.util.concurrent.ExecutionException ex) {
+            // Manejamos los errores de la tarea asíncrona
+            System.err.println("Error durante la ejecución asíncrona: " + ex.getMessage());
+            JOptionPane.showMessageDialog(mainView, "Error crítico: " + ex.getMessage(), "Error Fatal", JOptionPane.ERROR_MESSAGE);
+        } finally {
+            // La descarga siempre termina, re-habilitamos el botón
+            mainView.setBotonDescargarHabilitado(true);
         }
-        btnDescargar.setEnabled(true); // Reactiva el botón
     }
 }

@@ -1,10 +1,11 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
-package berlangadiaz.vidforge.downloader;
-import berlangadiaz.vidforge.downloader.AboutDialog;
-import berlangadiaz.vidforge.downloader.GestorJson;
+package berlangadiaz.vidforge.downloader.view;
+import berlangadiaz.vidforge.downloader.view.AboutDialog;
+import berlangadiaz.vidforge.downloader.view.MainViewPanel;
+import berlangadiaz.vidforge.downloader.view.PreferenciasPanel;
+import berlangadiaz.vidforge.downloader.view.BibliotecaPanel;
+import berlangadiaz.vidforge.downloader.model.GestorJson;
+import berlangadiaz.vidforge.downloader.model.GestorJson.Configuracion;
+
 /**
  *
  * @author jaimeberlangadiaz
@@ -22,8 +23,7 @@ public class MainFrame extends javax.swing.JFrame {
     /**
      * Creates new form MainFrame
      */
-    public MainFrame() {
-        
+    public MainFrame() {        
         // Establecer el valor guardado por defecto (para poder inicializar el GestorJson)
         // Usamos la ruta más generica (la de Downloads)
         this.rutaGuardado = System.getProperty("user.home")+ "/Downloads";
@@ -105,6 +105,8 @@ public class MainFrame extends javax.swing.JFrame {
         panelContenedor.setLayout(new java.awt.BorderLayout());
         getContentPane().add(panelContenedor);
         panelContenedor.setBounds(0, 0, 630, 550);
+
+        jMenuBar1.setPreferredSize(new java.awt.Dimension(128, 30));
 
         menuArchivo.setText("Archivo");
 

@@ -1,4 +1,4 @@
-package berlangadiaz.vidforge.downloader;
+package berlangadiaz.vidforge.downloader.model;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,9 +1,10 @@
 /*
  * Panel de la Biblioteca de Medios (Tarea 2)
  */
-package berlangadiaz.vidforge.downloader;
+package berlangadiaz.vidforge.downloader.view;
 
 // --- Imports necesarios para la lógica ---
+import berlangadiaz.vidforge.downloader.model.MediaFileTableModel;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,10 +12,10 @@ import javax.swing.JFileChooser;
 import javax.swing.JComboBox;
 import javax.swing.JList;
 // --- Imports de nuestras clases ---
-import berlangadiaz.vidforge.downloader.GestorJson;
-import berlangadiaz.vidforge.downloader.MediaFile;
-import berlangadiaz.vidforge.downloader.ColumnaOrden;
-import berlangadiaz.vidforge.downloader.TipoMimeFiltro;
+import berlangadiaz.vidforge.downloader.model.GestorJson;
+import berlangadiaz.vidforge.downloader.model.MediaFile;
+import berlangadiaz.vidforge.downloader.model.ColumnaOrden;
+import berlangadiaz.vidforge.downloader.model.TipoMimeFiltro;
 
 /**
  *
