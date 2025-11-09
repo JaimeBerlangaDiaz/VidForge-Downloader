@@ -23,16 +23,27 @@ public class MainFrame extends javax.swing.JFrame {
      * Creates new form MainFrame
      */
     public MainFrame() {
+        
+        // Establecer el valor guardado por defecto (para poder inicializar el GestorJson)
+        // Usamos la ruta más generica (la de Downloads)
+        this.rutaGuardado = System.getProperty("user.home")+ "/Downloads";
         //Intenta cargar la configuración guardada.
         GestorJson gestor = new GestorJson(rutaGuardado);
         GestorJson.Configuracion config = gestor.leerConfiguracion();
         
-        //Si hay configuración, sobreescribe los valores por defecto
+        // Sobreescribir lñas variables con los valores guardados, o usar defaults si no existe el archivo.
         if (config != null){
-            rutaYtDlp = config.rutaYtDlp;
-            rutaGuardado = config.rutaGuardado;
-            crearM3u = config.crearM3u;
-            limiteVelocidad = config.limiteVelocidad;
+            //Cargar los valores del JSON
+            this.rutaYtDlp = config.rutaYtDlp;
+            this.rutaGuardado = config.rutaGuardado;
+            this.crearM3u = config.crearM3u;
+            this.limiteVelocidad = config.limiteVelocidad;
+        } else {
+            //Si el archivo no existe (primera vez), usamos los valores por defecto del sistema
+            this.rutaYtDlp = getDefaultYtDlpPath();
+            //this.rutaGuardado ya está inicializada arriba
+            this.crearM3u = false;
+            this.limiteVelocidad = "";
         }
         initComponents();
         setLocationRelativeTo(null);
@@ -246,10 +257,6 @@ public class MainFrame extends javax.swing.JFrame {
             return "yt-dpl";
         }
     }
-    //Getters y Setters
-    public String getRutaYtDlp(){
-        return this.rutaYtDlp;
-    }
     /**
      * Guarda todas las preferencias en las variables de clase y en el archivo config.json.
      */
@@ -259,8 +266,17 @@ public class MainFrame extends javax.swing.JFrame {
         this.setRutaGuardado(guardado);
         this.setCrearM3u(m3u);
         this.setLimiteVelocidad(limite);
+        
+        //Guardar en el archivo JSON
+        //Nota: usamos la nueva ruta de guardado (el parámetro 'guardado') para saber dónde
+        //poner el config.json.
+        GestorJson gestor = new GestorJson(guardado);
+        gestor.guardarConfiguracion(ytDlp, guardado, m3u, limite);
     }
-    
+    //Getters y Setters
+    public String getRutaYtDlp(){
+        return this.rutaYtDlp;
+    }
     public void setRutaYtDlp(String ruta){
         this.rutaYtDlp = ruta;
     }
