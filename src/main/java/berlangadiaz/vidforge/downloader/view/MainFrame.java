@@ -11,6 +11,7 @@ import berlangadiaz.vidforge.downloader.model.GestorJson.Configuracion;
  * @author jaimeberlangadiaz
  */
 public class MainFrame extends javax.swing.JFrame {
+    private LoginPanel loginPanel;
     private MainViewPanel mainViewPanel;
     private PreferenciasPanel panelPreferencias;
     private String rutaYtDlp = getDefaultYtDlpPath();
@@ -18,6 +19,7 @@ public class MainFrame extends javax.swing.JFrame {
     private boolean crearM3u = false;
     private String limiteVelocidad = "";
     private BibliotecaPanel panelBiblioteca;
+    
     
     
     /**
@@ -48,9 +50,21 @@ public class MainFrame extends javax.swing.JFrame {
         initComponents();
         setLocationRelativeTo(null);
         mainViewPanel = new MainViewPanel(this);
+        loginPanel = new LoginPanel(this);
         panelPreferencias = new PreferenciasPanel(this);
         panelBiblioteca = new BibliotecaPanel(this);
         panelContenedor.add(mainViewPanel, java.awt.BorderLayout.CENTER);
+        
+        String token = GestorJson.getToken();
+        long expiration = GestorJson.getTokenExpirationTime();
+        
+        if (token != null && !token.isEmpty() && System.currentTimeMillis() < expiration){
+            //Token válido -> muestra la vista principal
+            mostrarVistaPrincipal();
+        } else {
+            mostrarVistaLogin();
+        }
+       
         
         panelContenedor.revalidate();
         panelContenedor.repaint();
@@ -204,16 +218,6 @@ public class MainFrame extends javax.swing.JFrame {
         mostrarVistaPrincipal();
     }//GEN-LAST:event_itemMostrarDescargaActionPerformed
     
-    public void mostrarVistaPrincipal() {
-        panelContenedor.remove(panelPreferencias);
-        panelContenedor.remove(panelBiblioteca);
-        panelContenedor.add(mainViewPanel, java.awt.BorderLayout.CENTER);
-        panelContenedor.revalidate();
-        panelContenedor.repaint();
-    }
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -302,20 +306,7 @@ public class MainFrame extends javax.swing.JFrame {
         this.limiteVelocidad = limiteVelocidad;
     }
     
-    /**
-     * Método público para cambiar a la vista de la Biblioteca
-     */
-    
-    public void mostrarVistaBiblioteca(){
-        //Quita todos los otros paneles
-        panelContenedor.remove(panelPreferencias);
-        panelContenedor.remove(mainViewPanel);
-        
-        //Añade el panel de biblioteca
-        panelContenedor.add(panelBiblioteca, java.awt.BorderLayout.CENTER);
-        panelContenedor.revalidate();
-        panelContenedor.repaint();
-    }
+
     // Variables para la ordenación de la Biblioteca
     private int columnaOrdenActual = 0; //0=Nombre, 1= Tamaño, 2= Fecha (por defecto: Nombre)
     private boolean ordenAscendente = true; //true= A->Z (ascendente), false = Z->A (descendente)
@@ -332,6 +323,43 @@ public class MainFrame extends javax.swing.JFrame {
     public void setOrdenAscendente(boolean ordenAscendente){
         this.ordenAscendente = ordenAscendente;
     }
+    
+    //Método público para cambiar a la vista de la Biblioteca    
+    public void mostrarVistaBiblioteca(){
+        //Quita todos los otros paneles
+        panelContenedor.remove(panelPreferencias);
+        panelContenedor.remove(mainViewPanel);
+        
+        //Añade el panel de biblioteca
+        panelContenedor.add(panelBiblioteca, java.awt.BorderLayout.CENTER);
+        panelContenedor.revalidate();
+        panelContenedor.repaint();
+    }
+    // Método para mostrar el LoginPanel
+    public void mostrarVistaLogin() {
+        // Asegúrate de que este método limpie los otros paneles antes de añadir el nuevo.
+        panelContenedor.removeAll();
+
+        // Configura el LoginPanel para que el usuario pueda interactuar
+        loginPanel.clearFields(); // Método a crear en LoginPanel si quieres limpiar los campos
+
+        panelContenedor.add(loginPanel, java.awt.BorderLayout.CENTER);
+        panelContenedor.revalidate();
+        panelContenedor.repaint();
+    }
+
+    // Método para mostrar el MainViewPanel
+    public void mostrarVistaPrincipal() {
+        panelContenedor.removeAll();
+        panelContenedor.add(mainViewPanel, java.awt.BorderLayout.CENTER);
+        panelContenedor.revalidate();
+        panelContenedor.repaint();
+
+        // (Opcional) Ocultar el menú de navegación mientras no estás logueado y mostrarlo aquí.
+        this.jMenuBar1.setVisible(true);
+    }
+    
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem itemAcerdaDe;
     private javax.swing.JMenuItem itemMostrarBiblioteca;

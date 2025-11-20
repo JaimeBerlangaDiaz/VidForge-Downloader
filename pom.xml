@@ -11,15 +11,21 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.release>24</maven.compiler.release>
+        <maven.compiler.release>25</maven.compiler.release>
         <exec.mainClass>berlangadiaz.vidforge.downloader.view.MainFrame</exec.mainClass>
     </properties>    
     <dependencies>
-        <!-- Dependencia para manejar JSON -->
+        <!-- https://mvnrepository.com/artifact/tools.jackson.core/jackson-core -->
         <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.10.1</version>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>3.0.0-rc4</version>
+            <type>jar</type>
         </dependency>
     </dependencies>    
     <build>
