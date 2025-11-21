@@ -4,7 +4,6 @@
  */
 package berlangadiaz.vidforge.downloader.view;
 
-// IMPORTACIONES NECESARIAS (¡Añadidas!)
 import berlangadiaz.vidforge.downloader.model.DownloadWorker;
 import javax.swing.SwingWorker;
 import java.util.List;
@@ -17,9 +16,13 @@ import java.io.IOException;
 import java.lang.ProcessBuilder;
 import java.lang.Process;
 import javax.swing.DefaultComboBoxModel;
+
 /**
+ * Panel principal de descarga de VidForge Downloader.
+ * Gestiona la interfaz de usuario para introducir la URL, seleccionar formatos/calidades,
+ * iniciar la descarga y visualizar el progreso y el log.
  *
- * @author jaimeberlangadiaz
+ * @author Jaime Berlanga Diaz
  */
 public class MainViewPanel extends javax.swing.JPanel {
 
@@ -33,10 +36,9 @@ public class MainViewPanel extends javax.swing.JPanel {
     private DefaultComboBoxModel<String> audioFormatsModel;
 
     /**
-     * Creates new form MainViewPanel
-     * * ¡CORREGIDO! He añadido el 'MainFrame parent' al constructor, 
-     * ya que lo necesitarás para que funcione el intercambio de paneles.
-     * @param parent
+     * Crea un nuevo formulario MainViewPanel.
+     * Inicializa los modelos de ComboBox y aplica las preferencias de persistencia.
+     * @param parent La instancia del MainFrame que actúa como controlador.
      */
     public MainViewPanel(MainFrame parent) {
         initComponents();
@@ -49,7 +51,20 @@ public class MainViewPanel extends javax.swing.JPanel {
         
         // Conectar los modelos y la interfaz por defecto
         cmbFormato.setModel(videoFormatsModel);
+        
+        // Cargar el estado guardado del CheckBox "Solo Audio" (crearM3u)
+        boolean soloAudioGuardado = parentFrame.isCrearM3u();
+        chkSoloAudio.setSelected(soloAudioGuardado);
 
+        // Si el CheckBox de Solo Audio estaba marcado, ajustamos el ComboBox de Formato.
+        if (soloAudioGuardado) {
+            cmbFormato.setModel(audioFormatsModel);
+            // Opcional: cmbFormato.setSelectedItem("mp3"); 
+        } else {
+            // Si no es solo audio, debe estar en la configuración de video
+            cmbFormato.setModel(videoFormatsModel);
+        }
+        
         // Arreglo para PEGAR (Cmd+V) en macOS
         javax.swing.Action pasteAction = txtUrl.getActionMap().get("paste");
         javax.swing.KeyStroke commandV = javax.swing.KeyStroke.getKeyStroke(
@@ -228,7 +243,7 @@ public class MainViewPanel extends javax.swing.JPanel {
         //Leemos todas las opciones de la GUI
         String url = txtUrl.getText();
         if (url == null || url.trim().isEmpty() || url.equals("Pega Aquí la URL del vídeo")){
-            javax.swing.JOptionPane.showMessageDialog(this, "Por favor introduce una RL válida.","Error",
+            javax.swing.JOptionPane.showMessageDialog(this, "Por favor introduce una URL válida.","Error",
                     javax.swing.JOptionPane.ERROR_MESSAGE);
             btnDescargar.setEnabled(true);
             return;
@@ -246,9 +261,11 @@ public class MainViewPanel extends javax.swing.JPanel {
             
         List<String> command = new ArrayList<>();
         
+        // Configurar el comando base (ruta yt-dlp)
         String rutaYtDlp= parentFrame.getRutaYtDlp();
         command.add(rutaYtDlp);
         
+        // Determinar la ruta de ffmpeg (necesario para fusionar y convertir formatos)
         try{
             File ytDlpFile = new File(rutaYtDlp);
             String ffmpegDirectory = ytDlpFile.getParent();
@@ -258,7 +275,7 @@ public class MainViewPanel extends javax.swing.JPanel {
             System.err.println("Advertencia : No se pudo determinar la ruta de ffmpeg automáticamente");
         }    
         
-        //logica de opciones
+        // Lógica de opciones (Audio o Vídeo)
         if (soloAudio){
             command.add("-x");
             command.add("--audio-format");
@@ -282,26 +299,29 @@ public class MainViewPanel extends javax.swing.JPanel {
                 command.add("-f");
                 command.add("bestvideo[height<=720]+bestaudio/best[height<=720]");
             }
-            //si es mejor no añadimos nada (es el por defecto)
+            //si es "mejor" no añadimos nada (es el por defecto)
         }
-        //TEMPORAL: ruta de guardado. Más tarde la leemos de preferencias 
-        //Guarda en la carpeta de descargas del Usuario
+        // Rutas de salida y límite de velocidad (leídas desde las preferencias guardadas.
         command.add("-o");
         command.add(parentFrame.getRutaGuardado()+ "/%(title)s.%(ext)s");
         
+        // Añadir límite de velocidad si está configurado en las preferencias.
         String limite = parentFrame.getLimiteVelocidad();
         if (limite != null && !limite.trim().isEmpty() && !limite.equals("0")){
             command.add("-r");
             command.add(limite + "K");
         }
+        
+        // Añadir URL y Ejecutar Worker.
         command.add(url);
-        //Ejecutar el SwingWorker
         DownloadWorker worker = new DownloadWorker(command, progressBar, txtLog, btnDescargar, this, parentFrame);
         worker.execute();
     }//GEN-LAST:event_btnDescargarActionPerformed
-
+    /* 
+    * Lógica de reproducción
+    */
     private void btnAbrirVideoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAbrirVideoActionPerformed
-        // Primero, comprobamos si la variable "ultimoArchivoDescargado" tiene algo
+        // Primero, comprobamos si la variable "ultimoArchivoDescargado" tiene algo.
         if (ultimoArchivoDescargado == null || ultimoArchivoDescargado.isEmpty()) {
             javax.swing.JOptionPane.showMessageDialog(this,
                     "Aún no se ha descargado ningún archivo en esta sesión.",
@@ -326,13 +346,15 @@ public class MainViewPanel extends javax.swing.JPanel {
             java.awt.Desktop.getDesktop().open(fileToOpen);
 
         } catch (Exception e) {
-            // Por si algo falla
+            // Por si algo falla manejo de errores de I/O o si Desktop no está soportado.
             javax.swing.JOptionPane.showMessageDialog(this,
                     "No se pudo abrir el archivo. Error: " + e.getMessage(),
                     "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnAbrirVideoActionPerformed
+    
     //MÉTODOS PÚBLICOS PARA EL WORKER
+    
     /**
      * Permite al DownloadWorker guardar la ruta del archivo final.
      * @param ruta La ruta del archivo descargado

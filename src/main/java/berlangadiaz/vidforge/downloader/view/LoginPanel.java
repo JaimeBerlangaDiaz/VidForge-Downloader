@@ -2,7 +2,7 @@ package berlangadiaz.vidforge.downloader.view;
 
 import berlangadiaz.vidforge.downloader.api.ApiClient;
 import berlangadiaz.vidforge.downloader.api.Usuari;
-import berlangadiaz.vidforge.downloader.model.GestorJson; // Asumimos esta clase
+import berlangadiaz.vidforge.downloader.model.GestorJson;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -10,7 +10,7 @@ import javax.swing.*;
 
 /**
  * Panel que gestiona la interfaz de login. 
- * Cumple el requisito de ser codificado SIN el NetBeans Designer.
+ * Codificado manualmente (sin NetBeans Designer) para cumplir el requisito.
  */
 public class LoginPanel extends JPanel implements ActionListener {
     
@@ -20,71 +20,59 @@ public class LoginPanel extends JPanel implements ActionListener {
     private final JCheckBox rememberMe;
     private final JButton loginButton;
 
-    // Referencia al Frame principal para cambiar la vista tras el login
     private final MainFrame parentFrame; 
+
+    // URL BASE DE LA API
+    private static final String API_BASE_URL = "https://dimedianetapi9.azurewebsites.net"; 
 
     public LoginPanel(MainFrame parentFrame) {
         this.parentFrame = parentFrame;
         
-        // 1. Configuración del Layout (Usando GridBagLayout para control manual)
+        // 1. Configuración del Layout (Usando GridBagLayout)
         setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         
         // Configuración de márgenes y relleno
-        gbc.insets = new Insets(8, 8, 8, 8); // Margen de 8px alrededor
-        gbc.fill = GridBagConstraints.HORIZONTAL; // Rellena horizontalmente
+        gbc.insets = new Insets(8, 8, 8, 8); 
+        gbc.fill = GridBagConstraints.HORIZONTAL; 
 
-        // --- Fila 0: Etiqueta Email ---
-        gbc.gridx = 0; // Columna 0
-        gbc.gridy = 0; // Fila 0
-        gbc.weightx = 0.0; 
+        // --- Fila 0: Email ---
+        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.0; 
         add(new JLabel("Email de Usuario:"), gbc);
 
-        // --- Fila 0: Campo Email ---
-        gbc.gridx = 1; // Columna 1
-        gbc.gridy = 0; 
-        gbc.weightx = 1.0; 
+        gbc.gridx = 1; gbc.gridy = 0; gbc.weightx = 1.0; 
         emailField = new JTextField(20);
         add(emailField, gbc);
 
-        // --- Fila 1: Etiqueta Contraseña ---
-        gbc.gridx = 0; // Columna 0
-        gbc.gridy = 1; // Fila 1
-        gbc.weightx = 0.0;
+        // --- Fila 1: Contraseña ---
+        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0.0;
         add(new JLabel("Contraseña:"), gbc);
 
-        // --- Fila 1: Campo Contraseña ---
-        gbc.gridx = 1; // Columna 1
-        gbc.gridy = 1; 
-        gbc.weightx = 1.0;
+        gbc.gridx = 1; gbc.gridy = 1; gbc.weightx = 1.0;
         passwordField = new JPasswordField(20);
         add(passwordField, gbc);
 
         // --- Fila 2: Checkbox "Recordarme" ---
-        gbc.gridx = 0; // Columna 0
-        gbc.gridy = 2; // Fila 2
-        gbc.gridwidth = 2; // Ocupa ambas columnas
-        gbc.anchor = GridBagConstraints.WEST; // Alineado a la izquierda
+        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2; 
+        gbc.anchor = GridBagConstraints.WEST; 
         gbc.fill = GridBagConstraints.NONE; 
         rememberMe = new JCheckBox("Recordarme en esta máquina (3 días)");
         add(rememberMe, gbc);
         
         // --- Fila 3: Botón de Login ---
-        gbc.gridx = 0; // Columna 0
-        gbc.gridy = 3; // Fila 3
-        gbc.gridwidth = 2; // Ocupa ambas columnas
+        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         loginButton = new JButton("Iniciar Sesión");
         add(loginButton, gbc);
         
-        // --- Añadir Listener y manejar la persistencia de datos ---
+        // --- Añadir Listener y manejar persistencia ---
         loginButton.addActionListener(this);
         
-        // Intentar cargar credenciales al inicio
+        // Al inicio, intenta cargar credenciales si existen
         loadRememberedUser(); 
     }
     
-    // --- LÓGICA DE EVENTOS Y FUNCIONALIDAD ---
+    // --- MÉTODOS DE LA CLASE ---
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -92,109 +80,117 @@ public class LoginPanel extends JPanel implements ActionListener {
             handleLoginAttempt();
         }
     }
-    
+
     /**
-     * Limpia los campos de email y contraseña del formulario. ESTE ES EL NUEVO
-     * MÉTODO DE INSTANCIA
+     * Limpia los campos de email y contraseña del formulario.
+     * Llamado por MainFrame al cambiar a la vista de login.
      */
-    public void clearFields() {
+    public void clearFields() { 
         emailField.setText("");
         passwordField.setText("");
         rememberMe.setSelected(false);
         loginButton.setEnabled(true);
-    }
+    } 
+
     /**
      * Intenta iniciar sesión con el token guardado para la función "Remember Me".
      */
     private void loadRememberedUser() {
-        String token = GestorJson.getToken(); // Llama al método estático de GestorJson
+        String token = GestorJson.getToken();
         long expiration = GestorJson.getTokenExpirationTime();
 
         // 1. Verificar si hay token guardado Y si no ha expirado
         if (token != null && !token.isEmpty() && System.currentTimeMillis() < expiration) {
-            
-            // 2. Si el token es válido, notificar a la API y al MainFrame
-            ApiClient.setAuthToken(token); // Establecer el token en el cliente API para futuras llamadas
-            
-            SwingUtilities.invokeLater(() -> {
-                // Muestra directamente la vista principal (simulando login exitoso)
-                JOptionPane.showMessageDialog(this, 
-                    "Sesión reanudada automáticamente.", 
-                    "Auto-Login", JOptionPane.INFORMATION_MESSAGE);
-                parentFrame.mostrarVistaPrincipal();
-            });
-            
+
+            // 2. Intentamos reanudar la sesión en el MainFrame (el gestor del ApiClient)
+            try {
+                // Llama al método de servicio que debe existir en MainFrame
+                parentFrame.resumeSession(token);
+
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(this,
+                            "Sesión reanudada automáticamente.",
+                            "Auto-Login", JOptionPane.INFORMATION_MESSAGE);
+                    parentFrame.mostrarVistaPrincipal();
+                });
+
+            } catch (Exception e) {
+                // Si falla la reanudación (ej. token caducado en el servidor), limpiamos y forzamos login
+                GestorJson.clearToken();
+                System.err.println("Error al reanudar la sesión: " + e.getMessage());
+            }
         } else if (expiration != 0 && System.currentTimeMillis() >= expiration) {
-             // Limpiar si el token está expirado
-             GestorJson.clearToken();
+            // Limpiar si el token está expirado
+            GestorJson.clearToken();
         }
     }
 
     /**
      * Lógica para el intento de login tras pulsar el botón. 
-     * Ejecuta la llamada a la API en un hilo separado.
+     * Ejecuta la llamada a la API en un hilo separado para evitar bloquear la UI.
      */
+// Dentro de LoginPanel.java:
+
     private void handleLoginAttempt() {
-        // Deshabilitar el botón para evitar múltiples clics
         loginButton.setEnabled(false);
-        
+
         final String email = emailField.getText();
         final String password = new String(passwordField.getPassword());
         final boolean shouldRemember = rememberMe.isSelected();
 
-        // Ejecutar la llamada a la API en un Thread para no bloquear la UI (EDT)
+        // Ejecutar la llamada a la API en un Thread (delegando la llamada a MainFrame)
         new Thread(() -> {
             Usuari usuarioLogueado = null;
             String errorMessage = null;
 
             try {
-                ApiClient client = new ApiClient(); 
-                
-                // Llama al método de login (asumimos que devuelve el objeto Usuari con el token)
-                usuarioLogueado = client.login(email, password); 
+                // 1. LLAMADA DELEGADA: El MainFrame gestiona el ApiClient.
+                usuarioLogueado = parentFrame.attemptLogin(email, password);
 
                 if (usuarioLogueado != null) {
-                    
+
+                    // 2. Persistencia (Usamos el token que está ahora guardado en MainFrame)
                     if (shouldRemember) {
-                        // Guardar el token y la expiración (3 días = 3 * 24 * 60 * 60 * 1000 milisegundos)
+                        // Obtener el token del MainFrame y guardarlo
+                        String token = parentFrame.getCurrentJwtToken();
                         long expirationTime = System.currentTimeMillis() + (3L * 24 * 60 * 60 * 1000);
-                        GestorJson.saveToken(usuarioLogueado.getToken(), expirationTime);
+                        GestorJson.saveToken(token, expirationTime);
                     } else {
-                         // Si el usuario se loguea pero no marca "recordarme", limpiar cualquier token previo.
-                         GestorJson.clearToken();
+                        GestorJson.clearToken();
                     }
-                    
-                    // Establecer el token globalmente para todas las llamadas API subsiguientes
-                    ApiClient.setAuthToken(usuarioLogueado.getToken()); 
-                    
-                    // Cambiar a la vista principal
+
+                    // 3. Cambiar a la vista principal (EDT)
+                    final Usuari finalUser = usuarioLogueado;
                     SwingUtilities.invokeLater(() -> {
-                        JOptionPane.showMessageDialog(this, 
-                            "¡Login exitoso! Bienvenido, " + usuarioLogueado.getNickname() + ".", 
-                            "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                        parentFrame.mostrarVistaPrincipal(); // Asume que MainFrame tiene este método
+                        JOptionPane.showMessageDialog(this,
+                                // ¡CORRECCIÓN! Acceder directamente al campo público
+                                "¡Login exitoso! Bienvenido, " + finalUser.nickName + ".",
+                                "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                        parentFrame.mostrarVistaPrincipal();
                     });
 
                 } else {
+                    // Esto solo debería ocurrir si attemptLogin devolvió null, lo cual lanza excepción.
+                    // Pero lo dejo como doble chequeo.
                     errorMessage = "Credenciales incorrectas o usuario no encontrado.";
                 }
-                
+
             } catch (Exception ex) {
-                // Error de red, 401 Unauthorized, o error de parsing de JSON
-                errorMessage = "Error de Login: " + ex.getMessage();
+                // Captura errores de red, 401 Unauthorized, etc.
+                errorMessage = "Error de Autenticación: " + ex.getMessage();
             }
 
-            // Volver al EDT para actualizar la UI (si hubo error o el proceso terminó)
+            // 4. Manejo de errores (Volver al EDT)
             if (errorMessage != null) {
                 final String finalErrorMessage = errorMessage;
                 SwingUtilities.invokeLater(() -> {
-                    JOptionPane.showMessageDialog(this, 
-                                                  finalErrorMessage, 
-                                                  "Error de Autenticación", 
-                                                  JOptionPane.ERROR_MESSAGE);
-                    loginButton.setEnabled(true); // Re-habilitar el botón
+                    JOptionPane.showMessageDialog(this,
+                            finalErrorMessage,
+                            "Error de Autenticación",
+                            JOptionPane.ERROR_MESSAGE);
+                    loginButton.setEnabled(true);
                 });
             }
-        }).start(); // Iniciar el hilo
+        }).start();
     }
 }

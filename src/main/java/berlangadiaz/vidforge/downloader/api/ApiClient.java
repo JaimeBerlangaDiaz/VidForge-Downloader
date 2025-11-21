@@ -30,6 +30,7 @@ public class ApiClient {
     private final ObjectMapper mapper = new ObjectMapper();
     private final String baseUrl;
     private final String defaultBlobContainer = "dimedianetblobs";
+    private static String globalJwtToken = null;
 
     public ApiClient(String baseUrl) {
         this.baseUrl = baseUrl;
@@ -243,5 +244,8 @@ public class ApiClient {
         // validate by parsing
         OffsetDateTime from = OffsetDateTime.parse(isoFrom);
         return getMediaAddedSince(from, jwt);
+    }
+    public static void setAuthToken(String token) {
+        globalJwtToken = token;
     }
 }

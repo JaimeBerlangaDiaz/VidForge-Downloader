@@ -1,39 +1,58 @@
 package berlangadiaz.vidforge.downloader.view;
+
 import berlangadiaz.vidforge.downloader.view.AboutDialog;
 import berlangadiaz.vidforge.downloader.view.MainViewPanel;
 import berlangadiaz.vidforge.downloader.view.PreferenciasPanel;
 import berlangadiaz.vidforge.downloader.view.BibliotecaPanel;
 import berlangadiaz.vidforge.downloader.model.GestorJson;
 import berlangadiaz.vidforge.downloader.model.GestorJson.Configuracion;
+import berlangadiaz.vidforge.downloader.api.ApiClient; 
+import berlangadiaz.vidforge.downloader.api.Usuari;
+import java.io.IOException;
+import javax.swing.JOptionPane;
 
 /**
- *
- * @author jaimeberlangadiaz
+ * Clase principal de la interfaz gráfica (GUI) y Contenedor Principal (Controller).
+ * Este frame inicializa todos los paneles, gestiona el flujo de la aplicación (Login/Vistas)
+ * y almacena el estado global, incluyendo las preferencias de descarga y la información de la sesión de la API.
+ * @author Jaime Berlanga Diaz
  */
 public class MainFrame extends javax.swing.JFrame {
+    
+    // --- VARIABLES DE VISTA ---
     private LoginPanel loginPanel;
     private MainViewPanel mainViewPanel;
     private PreferenciasPanel panelPreferencias;
-    private String rutaYtDlp = getDefaultYtDlpPath();
-    private String rutaGuardado = System.getProperty("user.home") + "/Downloads";    
-    private boolean crearM3u = false;
-    private String limiteVelocidad = "";
     private BibliotecaPanel panelBiblioteca;
     
+    // --- VARIABLES DE PREFERENCIAS Y ESTADO ---
+    // Valores por defecto al iniciar o si el archivo config.json no existe.
+    private String rutaYtDlp = getDefaultYtDlpPath();
+    private String rutaGuardado = System.getProperty("user.home") + "/Downloads"; 
+    private boolean crearM3u = false;
+    private String limiteVelocidad = "";
     
-    
+    // --- VARIABLES PARA LA ORDENACIÓN DE LA BIBLIOTECA ---
+    private int columnaOrdenActual = 0; 
+    private boolean ordenAscendente = true; 
+
+    // --- VARIABLES PARA EL LOGIN ---
+    private ApiClient apiClient; // Instancia del cliente
+    private String currentJwtToken = null; // Token de la sesión activa
+    private Usuari currentUser = null; // Objeto del usuario logueado
+    private static final String API_BASE_URL = "https://dimedianetapi9.azurewebsites.net"; // URL Base de la API
+ 
     /**
-     * Creates new form MainFrame
+     * Constructor principal del MainFrame.
+     * Carga las preferencias guardadas, inicializa el cliente API y gestiona el flujo de Auto-Login.
      */
     public MainFrame() {        
-        // Establecer el valor guardado por defecto (para poder inicializar el GestorJson)
-        // Usamos la ruta más generica (la de Downloads)
+        // Carga de preferencias de persistencia (yt-dlp).
         this.rutaGuardado = System.getProperty("user.home")+ "/Downloads";
-        //Intenta cargar la configuración guardada.
         GestorJson gestor = new GestorJson(rutaGuardado);
         GestorJson.Configuracion config = gestor.leerConfiguracion();
         
-        // Sobreescribir lñas variables con los valores guardados, o usar defaults si no existe el archivo.
+        // Sobreescribir las variables con los valores guardados, o usar defaults si no existe el archivo.
         if (config != null){
             //Cargar los valores del JSON
             this.rutaYtDlp = config.rutaYtDlp;
@@ -47,21 +66,37 @@ public class MainFrame extends javax.swing.JFrame {
             this.crearM3u = false;
             this.limiteVelocidad = "";
         }
+        // Inicialización de ApiClients yh GUI.
+        this.apiClient = new ApiClient(API_BASE_URL);
+        
         initComponents();
         setLocationRelativeTo(null);
+        
+        //Inicialización de Paneles
         mainViewPanel = new MainViewPanel(this);
         loginPanel = new LoginPanel(this);
         panelPreferencias = new PreferenciasPanel(this);
         panelBiblioteca = new BibliotecaPanel(this);
+        //Muestra MainViewPanel por defecto (será ocultado si hay Login).
         panelContenedor.add(mainViewPanel, java.awt.BorderLayout.CENTER);
         
+        //Lógica de Auto-Login y Flujo de Vista
         String token = GestorJson.getToken();
         long expiration = GestorJson.getTokenExpirationTime();
         
         if (token != null && !token.isEmpty() && System.currentTimeMillis() < expiration){
-            //Token válido -> muestra la vista principal
-            mostrarVistaPrincipal();
+            // Token válido: Intentamos reanudar la sesión
+            try {
+                this.resumeSession(token); 
+                mostrarVistaPrincipal();
+            } catch (Exception e) {
+                 // Si falla (si el token expiró en el servidor o fue inválido),
+                 // forzamos el Login.
+                 GestorJson.clearToken();
+                 mostrarVistaLogin();
+            }
         } else {
+            // Token no existe o expiró: Muestra el Login.
             mostrarVistaLogin();
         }
        
@@ -89,6 +124,7 @@ public class MainFrame extends javax.swing.JFrame {
         panelContenedor = new javax.swing.JPanel();
         jMenuBar1 = new javax.swing.JMenuBar();
         menuArchivo = new javax.swing.JMenu();
+        itemLogout = new javax.swing.JMenuItem();
         itemSalir = new javax.swing.JMenuItem();
         menuVer = new javax.swing.JMenu();
         itemMostrarDescarga = new javax.swing.JMenuItem();
@@ -123,6 +159,14 @@ public class MainFrame extends javax.swing.JFrame {
         jMenuBar1.setPreferredSize(new java.awt.Dimension(128, 30));
 
         menuArchivo.setText("Archivo");
+
+        itemLogout.setText("Cerrar Sesión");
+        itemLogout.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                itemLogoutActionPerformed(evt);
+            }
+        });
+        menuArchivo.add(itemLogout);
 
         itemSalir.setText("Salir");
         itemSalir.addActionListener(new java.awt.event.ActionListener() {
@@ -217,6 +261,22 @@ public class MainFrame extends javax.swing.JFrame {
     private void itemMostrarDescargaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemMostrarDescargaActionPerformed
         mostrarVistaPrincipal();
     }//GEN-LAST:event_itemMostrarDescargaActionPerformed
+
+    private void itemLogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemLogoutActionPerformed
+        // Limpiar la persistencia
+        GestorJson.clearToken(); 
+        
+        // Limpiar el estado interno del MainFrame
+        this.currentJwtToken = null;
+        this.currentUser = null;
+        
+        // Volver al login
+        mostrarVistaLogin();
+        
+        JOptionPane.showMessageDialog(this, 
+            "Sesión cerrada con éxito.", 
+            "Logout", JOptionPane.INFORMATION_MESSAGE);
+    }//GEN-LAST:event_itemLogoutActionPerformed
     
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
@@ -249,22 +309,117 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
     }
-    /*Determina el comando yt-dlp por defecto basado en el Sistema Operativo
-    *Esto asume que el usuario ha instalado la herramienta en su PATH
-    *
-    * @return "yt-dlp.exe" para windows, o "yt-dlp" para Mac/Linux
-    */
-    private String getDefaultYtDlpPath(){
-        String os = System.getProperty("os.name").toLowerCase();
+
+    // --- MÉTODOS DE SERVICIO (API Y LOGIN) ---
+
+    /**
+     * Implementa el proceso de Login completo: autenticación (login) y obtención 
+     * de los datos del usuario (getMe).
+     *
+     * @param email Email del usuario.
+     * @param password Contraseña del usuario.
+     * @return El objeto {@code Usuari} si el login es exitoso.
+     * @throws Exception Si falla la autenticación o la conexión.
+     */
+    public Usuari attemptLogin(String email, String password) throws Exception {
+
+        String token = apiClient.login(email, password);
+
+        if (token != null && !token.isBlank()) {
+            Usuari user = apiClient.getMe(token);
+
+            if (user != null) {
+                // Actualizar el estado del MainFrame con la nueva sesión
+                this.currentJwtToken = token;
+                this.currentUser = user;
+                return user;
+            }
+        }
+        // Si falla el login o getMe.
+        throw new IOException("Fallo de autenticación o datos de usuario no disponibles.");
+    }
+
+    /**
+     * Reanuda una sesión previamente guardada utilizando un token JWT persistente.
+     * Valida el token llamando al endpoint /getMe de la API.
+     *
+     * @param token El token JWT a validar.
+     * @return El objeto {@code Usuari} si el token es válido.
+     * @throws Exception Si el token no es válido o ha expirado en el servidor.
+     */
+    public Usuari resumeSession(String token) throws Exception {
+        Usuari user = apiClient.getMe(token);
+        if (user != null) {
+            // Si el token es válido, actualizamos el estado
+            this.currentJwtToken = token;
+            this.currentUser = user;
+            return user;
+        }
+        throw new IOException("Token no válido o expirado en el servidor.");
+    }
+
+    /**
+     * Devuelve el token JWT activo. Usado por LoginPanel para persistir la sesión.
+     *
+     * @return El token JWT actual de la sesión.
+     */
+    public String getCurrentJwtToken() {
+        return currentJwtToken;
+    }
+    
+    // --- MÉTODOS DE NAVEGACIÓN Y VISTAS ---
+    
+    //Método público para cambiar a la vista de la Biblioteca.   
+    public void mostrarVistaBiblioteca(){
+        //Quita todos los otros paneles
+        panelContenedor.remove(panelPreferencias);
+        panelContenedor.remove(mainViewPanel);
+        panelContenedor.remove(loginPanel);
         
-        if (os.contains("win")){
-            return "yt-dpl.exe";
-        }else {
-            return "yt-dpl";
+        //Añade el panel de biblioteca
+        panelContenedor.add(panelBiblioteca, java.awt.BorderLayout.CENTER);
+        panelContenedor.revalidate();
+        panelContenedor.repaint();
+    }
+    
+    // Método para mostrar el formulario de inicio de sesión (LoginPanel).
+    public void mostrarVistaLogin() {
+        panelContenedor.removeAll();
+
+        // Configura el LoginPanel
+        loginPanel.clearFields(); 
+
+        panelContenedor.add(loginPanel, java.awt.BorderLayout.CENTER);
+        panelContenedor.revalidate();
+        panelContenedor.repaint();
+        
+        // Ocultar los menús al no estar logueado
+        if (jMenuBar1 != null) {
+            jMenuBar1.setVisible(false);
         }
     }
+
+    // Método para mostrar el panel principal (MainViewPanel).
+    public void mostrarVistaPrincipal() {
+        panelContenedor.removeAll();
+        panelContenedor.add(mainViewPanel, java.awt.BorderLayout.CENTER);
+        panelContenedor.revalidate();
+        panelContenedor.repaint();
+
+        // Mostrar los menús al estar logueado
+        if (jMenuBar1 != null) {
+            jMenuBar1.setVisible(true);
+        }
+    }
+    
     /**
-     * Guarda todas las preferencias en las variables de clase y en el archivo config.json.
+     * Guarda todas las preferencias actuales (rutas, opciones) en las variables de clase
+     * y las persiste en el archivo config.json llamando al GestorJson.
+     *
+     * @param ytDlp Ruta del ejecutable yt-dlp.
+     * @param guardado Ruta de la carpeta de guardado de archivos.
+     * @param m3u Si se debe crear un archivo M3U (usado para la opción 'Solo Audio').
+     * @param limite El límite de velocidad de descarga.
      */
     public void guardarTodasLasPreferencias(String ytDlp, String guardado, boolean m3u, String limite){
         //Guardar en las variables de la clase
@@ -276,9 +431,32 @@ public class MainFrame extends javax.swing.JFrame {
         //Guardar en el archivo JSON
         //Nota: usamos la nueva ruta de guardado (el parámetro 'guardado') para saber dónde
         //poner el config.json.
-        GestorJson gestor = new GestorJson(guardado);
-        gestor.guardarConfiguracion(ytDlp, guardado, m3u, limite);
+        try {
+            // Guardar en el archivo JSON
+            GestorJson gestor = new GestorJson(guardado);
+            gestor.guardarConfiguracion(ytDlp, guardado, m3u, limite);
+        } catch (IOException e) { // Usamos Exception para simplificar y capturar cualquier error de guardado
+            JOptionPane.showMessageDialog(this,
+                    "Error al guardar las preferencias. El archivo config.json no se pudo escribir: " + e.getMessage(),
+                    "Error de Persistencia", JOptionPane.ERROR_MESSAGE);
+        }
     }
+ 
+    /*Determina el comando yt-dlp por defecto basado en el Sistema Operativo
+    *Esto asume que el usuario ha instalado la herramienta en su PATH
+    *
+    * @return "yt-dlp.exe" para windows, o "yt-dlp" para Mac/Linux
+    */
+    private String getDefaultYtDlpPath() {
+        String os = System.getProperty("os.name").toLowerCase();
+
+        if (os.contains("win")) {
+            return "yt-dlp.exe";
+        } else {
+            return "yt-dlp";
+        }
+    }
+    
     //Getters y Setters
     public String getRutaYtDlp(){
         return this.rutaYtDlp;
@@ -304,13 +482,7 @@ public class MainFrame extends javax.swing.JFrame {
     }
     public void setLimiteVelocidad(String limiteVelocidad){
         this.limiteVelocidad = limiteVelocidad;
-    }
-    
-
-    // Variables para la ordenación de la Biblioteca
-    private int columnaOrdenActual = 0; //0=Nombre, 1= Tamaño, 2= Fecha (por defecto: Nombre)
-    private boolean ordenAscendente = true; //true= A->Z (ascendente), false = Z->A (descendente)
-    
+    }   
     public int getColumnaOrdenActual(){
         return columnaOrdenActual;
     }
@@ -323,45 +495,10 @@ public class MainFrame extends javax.swing.JFrame {
     public void setOrdenAscendente(boolean ordenAscendente){
         this.ordenAscendente = ordenAscendente;
     }
-    
-    //Método público para cambiar a la vista de la Biblioteca    
-    public void mostrarVistaBiblioteca(){
-        //Quita todos los otros paneles
-        panelContenedor.remove(panelPreferencias);
-        panelContenedor.remove(mainViewPanel);
-        
-        //Añade el panel de biblioteca
-        panelContenedor.add(panelBiblioteca, java.awt.BorderLayout.CENTER);
-        panelContenedor.revalidate();
-        panelContenedor.repaint();
-    }
-    // Método para mostrar el LoginPanel
-    public void mostrarVistaLogin() {
-        // Asegúrate de que este método limpie los otros paneles antes de añadir el nuevo.
-        panelContenedor.removeAll();
-
-        // Configura el LoginPanel para que el usuario pueda interactuar
-        loginPanel.clearFields(); // Método a crear en LoginPanel si quieres limpiar los campos
-
-        panelContenedor.add(loginPanel, java.awt.BorderLayout.CENTER);
-        panelContenedor.revalidate();
-        panelContenedor.repaint();
-    }
-
-    // Método para mostrar el MainViewPanel
-    public void mostrarVistaPrincipal() {
-        panelContenedor.removeAll();
-        panelContenedor.add(mainViewPanel, java.awt.BorderLayout.CENTER);
-        panelContenedor.revalidate();
-        panelContenedor.repaint();
-
-        // (Opcional) Ocultar el menú de navegación mientras no estás logueado y mostrarlo aquí.
-        this.jMenuBar1.setVisible(true);
-    }
-    
-
+   
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem itemAcerdaDe;
+    private javax.swing.JMenuItem itemLogout;
     private javax.swing.JMenuItem itemMostrarBiblioteca;
     private javax.swing.JMenuItem itemMostrarDescarga;
     private javax.swing.JMenuItem itemPreferencias;

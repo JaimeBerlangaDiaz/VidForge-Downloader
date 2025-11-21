@@ -1,164 +1,206 @@
 package berlangadiaz.vidforge.downloader.model;
 
-// Imports de Google Gson (el "traductor" de JSON)
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-
-// Imports de Java para leer y escribir archivos
+import java.util.prefs.Preferences;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.FileWriter;
+import java.io.FileReader;
+import java.io.Reader;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 /**
- * Clase Gestora que se encarga de leer y escribir la lista
- * de objetos MediaFile en un archivo log.json.
+ * Clase que gestiona la persistencia de datos del proyecto VidForge. Incluye
+ * configuración de yt-dlp, historial local (log.json) y el token JWT
+ * (Preferences).
+ * 
+ * @author Jaime Berlanga Diaz
  */
 public class GestorJson {
-    private final Gson gson;
-    private final java.io.File directorioBase;
-    private final String RUTA_LOG_JSON; // Ruta completa al archivo log.json
+
+    // --- PERSISTENCIA DEL TOKEN JWT (Función "Recordarme") ---
+    // Objeto estático para acceder al sistema de preferencias de Java.
+    private static final Preferences prefs
+            = Preferences.userNodeForPackage(GestorJson.class);
+    private static final String PREF_TOKEN = "jwt_token";
+    private static final String PREF_EXPIRATION = "token_expiration_ms";
+
+    // --- VARIABLES Y CONSTRUCTOR PARA CONFIGURACIÓN YT-DLP / HISTORIAL ---
+    private final String rutaBase;
     private final String CONFIG_FILE_NAME = "config.json";
+    private final String LOG_FILE_NAME = "log.json";
 
-    /**
-     * Constructor.
-     * @param rutaCarpetaGuardado La carpeta donde se guardan las descargas (ej. /Users/tu/Downloads)
-     */
-    public GestorJson(String rutaCarpetaGuardado) {
-        // El log se guardará en la misma carpeta que las descargas
-        // Usamos File.separator para que funcione en Windows (\) y Mac (/)
-        this.RUTA_LOG_JSON = rutaCarpetaGuardado + File.separator + "log.json";
-        
-        // Creamos un Gson "bonito" (con indentación)
-        this.gson = new GsonBuilder().setPrettyPrinting().create();
-        this.directorioBase = new java.io.File(rutaCarpetaGuardado);
-    }
+    // Usamos Jackson para manejar el JSON, ya que es la dependencia solicitada.
+    private final ObjectMapper mapper = new ObjectMapper();
 
-    /**
-     * Lee todos los MediaFile guardados en log.json.
-     * @return Una lista de MediaFile. Si el log no existe, devuelve una lista vacía.
-     */
-    public List<MediaFile> leerArchivos() {
-        File log = new File(RUTA_LOG_JSON);
+    // Clase interna para la configuración (Asumiendo que existe)
+    public static class Configuracion {
 
-        // Si el archivo no existe, devuelve una lista vacía
-        if (!log.exists()) {
-            System.out.println("No se encontró log.json, creando uno nuevo.");
-            return new ArrayList<>();
-        }
-
-        // Definir el "tipo" de la lista (para que Gson sepa cómo traducir)
-        Type tipoLista = new TypeToken<ArrayList<MediaFile>>() {}.getType();
-
-        try (FileReader reader = new FileReader(log)) {
-            // Usa Gson para "traducir" el JSON a la Lista de objetos
-            List<MediaFile> archivos = gson.fromJson(reader, tipoLista);
-            
-            // Si el archivo estaba vacío o mal formado, devuelve una lista vacía
-            if (archivos == null) {
-                return new ArrayList<>();
-            }
-            return archivos;
-
-        } catch (IOException e) {
-            System.err.println("Error al leer el log.json: " + e.getMessage());
-            return new ArrayList<>(); // Devuelve lista vacía en caso de error
-        }
-    }
-
-    /**
-     * Añade un NUEVO MediaFile al log.json.
-     * @param nuevoArchivo El MediaFile que se acaba de descargar.
-     */
-    public void anadirArchivo(MediaFile nuevoArchivo) {
-        // 1. Lee la lista actual de archivos
-        List<MediaFile> archivos = leerArchivos();
-        
-        // 2. Añade el nuevo archivo a la lista
-        archivos.add(nuevoArchivo);
-        
-        // 3. Sobrescribe el log.json con la lista actualizada
-        guardarArchivos(archivos);
-    }
-    
-    /**
-     * (Lo usaremos más tarde) Borra un MediaFile del log.json.
-     * @param archivoABorrar El MediaFile a eliminar.
-     */
-    public void eliminarArchivo(MediaFile archivoABorrar) {
-        // 1. Lee la lista actual
-        List<MediaFile> archivos = leerArchivos();
-        
-        // 2. Busca y elimina el archivo (comparamos por la ruta, que es única)
-        archivos.removeIf(mf -> mf.getRuta().equals(archivoABorrar.getRuta()));
-        
-        // 3. Sobrescribe el log.json
-        guardarArchivos(archivos);
-    }
-
-    /**
-     * Método privado para escribir la lista completa en el archivo.
-     * @param archivos La lista de MediaFile a guardar.
-     */
-    private void guardarArchivos(List<MediaFile> archivos) {
-        try (FileWriter writer = new FileWriter(RUTA_LOG_JSON)) {
-            // Usa Gson para "traducir" la Lista de objetos a texto JSON
-            gson.toJson(archivos, writer);
-            System.out.println("log.json actualizado con éxito.");
-            
-        } catch (IOException e) {
-            System.err.println("Error al guardar en log.json: " + e.getMessage());
-        }
-    }
-    
-    /**
-     * Clase auxiliar para guardar las opciones simples de configuración
-     */
-    public static class Configuracion{
         public String rutaYtDlp;
         public String rutaGuardado;
         public boolean crearM3u;
         public String limiteVelocidad;
     }
-    
-    /**
-     * Guarda las preferencias de la aplicación en config.json
-     */
-    public void guardarConfiguracion(String ytDlp, String guardado, boolean m3u, String limite) {
-        File configFile = new File(directorioBase, CONFIG_FILE_NAME);
 
+    public GestorJson(String rutaGuardado) {
+        this.rutaBase = rutaGuardado;
+    }
+
+    // --- MÉTODOS ESTÁTICOS PARA EL TOKEN JWT (Ya revisados) ---
+    public static void saveToken(String token, long expirationTime) {
+        prefs.put(PREF_TOKEN, token);
+        prefs.putLong(PREF_EXPIRATION, expirationTime);
+        try {
+            prefs.flush();
+        } catch (java.util.prefs.BackingStoreException e) {
+            //El fallo al escribir es un problema del SO. Se registra la advertencia 
+            // en consola para el desarrollador pero se permite la ejecución normal.
+            System.err.println("Advertencia: Fallo al escribir el token de sesión en el disco." 
+                          + "\n El sistema operativo debería resolverlo. Error: " + e.getMessage());
+        }
+    }
+    
+    /*
+    * Elimina el token de sesión y el tiempo de expiración guardados en la 
+    * persistencia del sistema (Java Preferences)
+    * Se utiliza para registrar el cierre de sesión explícito del usuario y asegurar
+    * que no se realice un "Auto-Login" la próxima vez que se ejecute la aplicación.
+    */
+    public static String getToken() {
+        String token = prefs.get(PREF_TOKEN, "");
+        return token.isEmpty() ? null : token;
+    }
+
+    public static long getTokenExpirationTime() {
+        return prefs.getLong(PREF_EXPIRATION, 0L);
+    }
+
+    public static void clearToken() {
+        prefs.remove(PREF_TOKEN);
+        prefs.remove(PREF_EXPIRATION);
+        try {
+            prefs.flush();
+        } catch (java.util.prefs.BackingStoreException e) {
+            //Aviso para el desarrollador de fallo de escritura/borrado.
+            System.err.println("Advertencia: Fallo al eliminar las claves de sesión del disco. " 
+                          + "La lógica de la sesión se considera cerrada. Error: " + e.getMessage());}
+    }
+
+    // --- MÉTODOS DE HISTORIAL LOCAL (log.json) ---
+    /**
+     * Carga todos los archivos MediaFile guardados en el historial (log.json).
+     * SOLUCIONA EL ERROR: gestor.leerArchivos()
+     */
+    public List<MediaFile> leerArchivos() {
+        File logFile = new File(rutaBase, LOG_FILE_NAME);
+        if (!logFile.exists() || logFile.length() == 0) {
+            return new ArrayList<>();
+        }
+
+        try (Reader reader = new FileReader(logFile)) {
+            // Usa TypeReference para deserializar una lista de MediaFile
+            List<MediaFile> archivos = mapper.readValue(reader, new TypeReference<List<MediaFile>>() {
+            });
+            return (archivos != null) ? archivos : new ArrayList<>();
+        } catch (IOException e) {
+            System.err.println("Error al leer log.json con Jackson: " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Añade un archivo al historial (log.json) y lo guarda.
+     */
+    public void anadirArchivo(MediaFile archivoNuevo) {
+        List<MediaFile> lista = leerArchivos(); // Lee la lista existente
+        lista.add(0, archivoNuevo); // Añade el nuevo archivo al principio
+        guardarArchivos(lista); // Guarda la lista completa
+    }
+
+    /**
+     * Elimina una entrada del archivo JSON de historial y lo guarda. SOLUCIONA
+     * EL ERROR: gestor.eliminarArchivo(archivoABorrar)
+     */
+    public void eliminarArchivo(MediaFile archivoABorrar) {
+        List<MediaFile> lista = leerArchivos(); // Lee la lista existente
+
+        // Encuentra y elimina el archivo basándose en la ruta
+        lista.removeIf(f -> f.getRuta().equals(archivoABorrar.getRuta()));
+
+        guardarArchivos(lista); // Guarda la lista completa
+    }
+
+    /**
+     * Método auxiliar para serializar y guardar la lista completa al disco
+     * usando Jackson.
+     */
+    private void guardarArchivos(List<MediaFile> lista) {
+        File logFile = new File(rutaBase, LOG_FILE_NAME);
+        try (FileWriter writer = new FileWriter(logFile)) {
+            // Usa writeValue para serializar la lista de objetos a JSON
+            mapper.writeValue(logFile, lista);
+        } catch (IOException e) {
+            System.err.println("Error al escribir en log.json: " + e.getMessage());
+        }
+    }
+
+    // --- MÉTODOS DE PERSISTENCIA DE YT-DLP ---
+    /**
+     * Guarda la configuración actual de yt-dlp (rutas, opciones y límites) en
+     * un archivo JSON ("config.json") usando la librería Jackson. * Este método
+     * se encarga de serializar los parámetros de entrada en un objeto
+     * {@code Configuracion} y persistirlo en la ruta base definida.
+     *
+     * @param ytDlp La ruta completa del ejecutable yt-dlp.
+     * @param guardado La ruta de la carpeta donde se guardarán los archivos
+     * descargados.
+     * @param m3u Indica si se debe crear un archivo M3U para listas de
+     * reproducción.
+     * @param limite El límite de velocidad de descarga en formato String (ej.
+     * "500K" o vacío).
+     * @throws IOException Si ocurre un error durante la escritura del archivo
+     * en el disco.
+     */
+    public void guardarConfiguracion(String ytDlp, String guardado, boolean m3u, String limite) throws IOException {
+
+        // Crea el objeto con los datos recibidos
         Configuracion config = new Configuracion();
         config.rutaYtDlp = ytDlp;
         config.rutaGuardado = guardado;
         config.crearM3u = m3u;
         config.limiteVelocidad = limite;
 
-        try (java.io.FileWriter writer = new java.io.FileWriter(configFile)) {
-            gson.toJson(config, writer);
-        } catch (IOException e) {
-            System.err.println("Error al guardar la configuración: " + e.getMessage());
-        }
+        File configFile = new File(rutaBase, CONFIG_FILE_NAME);
+
+        // Usamos Jackson (mapper) para SERIALIZAR (escribir)
+        mapper.writeValue(configFile, config);
+        System.out.println("Configuración de yt-dlp guardada exitosamente en: " + configFile.getAbsolutePath());
     }
 
     /**
-     * Lee las preferencias de la aplicación desde config.json.
-     * Retorna null si el archivo no existe o hay error.
+     * Intenta cargar la configuración de yt-dlp desde el archivo JSON
+     * ("config.json") utilizando la librería Jackson. 
+     * Si el archivo no existe o está vacío, devuelve {@code null} para que el llamador (MainFrame)
+     * pueda aplicar los valores por defecto del sistema.
+     *
+     * @return Un objeto {@code Configuracion} con los valores cargados, o
+     * {@code null} si el archivo no se encuentra o la lectura falla.
      */
     public Configuracion leerConfiguracion() {
-        File configFile = new File(directorioBase, CONFIG_FILE_NAME);
-        if (!configFile.exists()) {
-            return null; // No hay configuración guardada
+        File configFile = new File(rutaBase, CONFIG_FILE_NAME);
+
+        if (!configFile.exists() || configFile.length() == 0) {
+            return null; // Si no hay archivo, MainFrame usará los valores por defecto
         }
 
-        try (java.io.Reader reader = new java.io.FileReader(configFile)) {
-            // Leemos el objeto de configuración del JSON
-            return gson.fromJson(reader, Configuracion.class);
+        try (Reader reader = new FileReader(configFile)) {
+            // Devuelve el objeto Configuracion cargado
+            Configuracion config = mapper.readValue(reader, Configuracion.class);
+            return config;
         } catch (IOException e) {
-            System.err.println("Error al leer la configuración: " + e.getMessage());
+            System.err.println("Error al leer config.json con Jackson: " + e.getMessage());
             return null;
         }
     }

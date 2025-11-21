@@ -10,34 +10,38 @@
     <description>Una GUI para yt-dlp creada para la tarea DI01.</description>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.release>25</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>        
+        <maven.compiler.source>25</maven.compiler.source> 
+        <maven.compiler.target>25</maven.compiler.target>        
         <exec.mainClass>berlangadiaz.vidforge.downloader.view.MainFrame</exec.mainClass>
     </properties>    
     <dependencies>
-        <!-- https://mvnrepository.com/artifact/tools.jackson.core/jackson-core -->
-        <dependency>
-            <groupId>tools.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>3.0.0</version>
-        </dependency>
         <dependency>
             <groupId>tools.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>3.0.0-rc4</version>
-            <type>jar</type>
+            <version>3.0.0</version>
         </dependency>
-    </dependencies>    
+    </dependencies>   
     <build>
         <resources>
             <resource>
-                <!-- Indica que la carpeta src/main/resources debe copiarse -->
                 <directory>src/main/resources</directory>
                 <filtering>false</filtering>
             </resource>
-        </resources>        
+        </resources>       
         <plugins>
-            <!-- Plugin para copiar recursos no filtrados (como imágenes) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <compilerArgs>
+                        <arg>--enable-preview</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>          
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -48,7 +52,7 @@
                         <nonFilteredFileExtension>jpg</nonFilteredFileExtension>
                     </nonFilteredFileExtensions>
                 </configuration>
-            </plugin>            
+            </plugin>           
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -56,22 +60,11 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <!-- Clase de entrada para el JAR ejecutable -->
                             <mainClass>berlangadiaz.vidforge.downloader.view.MainFrame</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
-            </plugin>            
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
-                <configuration>
-                    <compilerArgs>
-                        <arg>--enable-preview</arg>
-                    </compilerArgs>
-                </configuration>
             </plugin>
         </plugins>
-    </build>   
+    </build>
 </project>
