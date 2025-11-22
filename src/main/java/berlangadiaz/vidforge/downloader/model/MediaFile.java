@@ -63,7 +63,6 @@ public class MediaFile {
     }
 
     // --- Getters (Métodos para leer la información) ---
-    // (Gson los usa para crear el JSON)
     
     public String getNombre() {
         return nombre;
@@ -84,9 +83,31 @@ public class MediaFile {
     public long getFechaCreacionMs() {
         return fechaCreacionMs;
     }
-
-    // --- Métodos de Ayuda (para la JTable) ---
     
+    // --- Setters (Métodos para escribir la información) ---
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public void setRuta(String ruta) {
+        this.ruta = ruta;
+    }
+
+    public void setTamanoBytes(long tamanoBytes) {
+        this.tamanoBytes = tamanoBytes;
+    }
+
+    public void setTipoMime(String tipoMime) {
+        this.tipoMime = tipoMime;
+    }
+
+    public void setFechaCreacionMs(long fechaCreacionMs) {
+        this.fechaCreacionMs = fechaCreacionMs;
+    }
+    
+    // --- Métodos de Ayuda (para la JTable) ---
+
     /**
      * Devuelve el tamaño en formato legible (ej. "10.5 MB").
      * Esto lo usará nuestra JTable.

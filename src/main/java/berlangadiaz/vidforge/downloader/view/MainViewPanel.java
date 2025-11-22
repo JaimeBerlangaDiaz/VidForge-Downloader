@@ -253,66 +253,103 @@ public class MainViewPanel extends javax.swing.JPanel {
         String formato = cmbFormato.getSelectedItem().toString();
         
         String calidadVideo = "";
-            if (rbVideoMejor.isSelected()) calidadVideo ="mejor";
-            else if (rbVideo1080.isSelected()) calidadVideo ="1080";
-            else if (rbVideo720.isSelected()) calidadVideo = "720";
-            String calidadAudio = "";
-            if (rbAudioBuena.isSelected()) calidadAudio ="buena";
-            else if (rbAudioNormal.isSelected()) calidadAudio= "normal";
-            
+        if (rbVideoMejor.isSelected()) {
+            calidadVideo = "mejor";
+        } else if (rbVideo1080.isSelected()) {
+            calidadVideo = "1080";
+        } else if (rbVideo720.isSelected()) {
+            calidadVideo = "720";
+        }
+        String calidadAudio = "";
+        if (rbAudioBuena.isSelected()) {
+            calidadAudio = "buena";
+        } else if (rbAudioNormal.isSelected()) {
+            calidadAudio = "normal";
+        }
+
         List<String> command = new ArrayList<>();
-        
+
         // Configurar el comando base (ruta yt-dlp)
-        String rutaYtDlp= parentFrame.getRutaYtDlp();
+        String rutaYtDlp = parentFrame.getRutaYtDlp();
         command.add(rutaYtDlp);
-        
+        command.add("--restrict-filenames");
+
         // Determinar la ruta de ffmpeg (necesario para fusionar y convertir formatos)
-        try{
+        try {
             File ytDlpFile = new File(rutaYtDlp);
-            String ffmpegDirectory = ytDlpFile.getParent();
-            command.add("--ffmpeg-location");
-            command.add(ffmpegDirectory);
-        }catch (Exception e){
-            System.err.println("Advertencia : No se pudo determinar la ruta de ffmpeg automáticamente");
-        }    
-        
-        // Lógica de opciones (Audio o Vídeo)
-        if (soloAudio){
-            command.add("-x");
+            // Verificamos que el archivo existe y tiene un directorio padre válido
+            // (Esto evita el error si rutaYtDlp es solo "yt-dlp.exe")
+            if (ytDlpFile.exists() && ytDlpFile.getParentFile() != null) {
+                String ffmpegDirectory = ytDlpFile.getParentFile().getAbsolutePath();
+                command.add("--ffmpeg-location");
+                command.add(ffmpegDirectory);
+            }
+        } catch (Exception e) {
+            System.err.println("No se pudo determinar la ruta de ffmpeg automáticamente (se usará PATH).");
+        }
+            // Lógica de opciones (Audio o Vídeo)
+            if (soloAudio) {
+                command.add("-x");
             command.add("--audio-format");
             command.add(formato);
             
-            if (calidadAudio.equals("buena")){
+            command.add("-f");
+            command.add("bestaudio");
+
+            if (calidadAudio.equals("buena")) {
                 command.add("--audio-quality");
                 command.add("192K");
-            }else if (calidadAudio.equals("normal")){
+            } else if (calidadAudio.equals("normal")) {
                 command.add("--audio-quality");
                 command.add("128K");
-            } 
+            }
         } else { 
+            // --- CORRECCIÓN VÍDEO: COMPATIBILIDAD MP4 ---
             command.add("--merge-output-format");
             command.add(formato);
             
-            if (calidadVideo.equals("1080p")){
-                command.add("-f");
-                command.add("bestvideo[height<=1080]+bestaudio/[height<=1080]");
-            } else if (calidadVideo.equals("720p")){
-                command.add("-f");
-                command.add("bestvideo[height<=720]+bestaudio/best[height<=720]");
+            // Estrategia de selección de calidad inteligente
+            if (formato.equals("mp4")) {
+                // Si elige MP4, intentamos H264+AAC para máxima compatibilidad en Windows
+                if (calidadVideo.equals("1080p")){
+                    command.add("-f");
+                    command.add("bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best");
+                } else if (calidadVideo.equals("720p")){
+                    command.add("-f");
+                    command.add("bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best");
+                } else {
+                    // Mejor disponible
+                    command.add("-f");
+                    command.add("bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best");
+                }
+            } else {
+                // Si elige MKV/WebM, buscamos la mejor calidad absoluta (VP9/Opus)
+                if (calidadVideo.equals("1080p")){
+                    command.add("-f");
+                    command.add("bestvideo[height<=1080]+bestaudio/best[height<=1080]");
+                } else if (calidadVideo.equals("720p")){
+                    command.add("-f");
+                    command.add("bestvideo[height<=720]+bestaudio/best[height<=720]");
+                }
+                // Si es "Mejor Disponible", yt-dlp decide (suele ser la máxima)
             }
-            //si es "mejor" no añadimos nada (es el por defecto)
         }
-        // Rutas de salida y límite de velocidad (leídas desde las preferencias guardadas.
+        // Rutas de salida y límite de velocidad (leídas desde las preferencias guardadas).
         command.add("-o");
-        command.add(parentFrame.getRutaGuardado()+ "/%(title)s.%(ext)s");
-        
+
+        // CORRECCIÓN: Declaramos la variable String y la envolvemos en comillas para el ejecutable
+        // Obtenemos la ruta y usamos el separador de archivos del sistema operativo
+        String outputPath = parentFrame.getRutaGuardado() + java.io.File.separator + "%(title)s.%(ext)s";
+
+        // Añadimos la ruta al comando, envuelta en comillas dobles (") para manejar espacios en las carpetas de Windows.
+        command.add("\"" + outputPath + "\"");
         // Añadir límite de velocidad si está configurado en las preferencias.
         String limite = parentFrame.getLimiteVelocidad();
-        if (limite != null && !limite.trim().isEmpty() && !limite.equals("0")){
+        if (limite != null && !limite.trim().isEmpty() && !limite.equals("0")) {
             command.add("-r");
             command.add(limite + "K");
         }
-        
+
         // Añadir URL y Ejecutar Worker.
         command.add(url);
         DownloadWorker worker = new DownloadWorker(command, progressBar, txtLog, btnDescargar, this, parentFrame);
@@ -363,7 +400,7 @@ public class MainViewPanel extends javax.swing.JPanel {
      *
      * @param rutaFinalArchivo La ruta absoluta del archivo descargado.
      */
-    public void notificarDescargaCompleta(String rutaFinalArchivo) {
+    public void notificarDescargaCompleta(String rutaFinalArchivo) throws IOException {
 
         // 1. Crear el objeto MediaFile (asumiendo que tienes un constructor adecuado)
         // NOTA: Esto es conceptual. Necesitas la clase MediaFile para esto.

@@ -48,8 +48,8 @@ public class MainFrame extends javax.swing.JFrame {
      */
     public MainFrame() {        
         // Carga de preferencias de persistencia (yt-dlp).
-        this.rutaGuardado = System.getProperty("user.home")+ "/Downloads";
-        GestorJson gestor = new GestorJson(rutaGuardado);
+        this.rutaGuardado = System.getProperty("user.home") + "/Download";
+        GestorJson gestor = new GestorJson(System.getProperty("user.home"));
         GestorJson.Configuracion config = gestor.leerConfiguracion();
         
         // Sobreescribir las variables con los valores guardados, o usar defaults si no existe el archivo.
@@ -254,7 +254,11 @@ public class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_itemAcerdaDeActionPerformed
 
     private void itemMostrarBibliotecaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemMostrarBibliotecaActionPerformed
-        panelBiblioteca.cargarDatosDelJson();
+        try {
+            panelBiblioteca.aplicarFiltrosYOrden();
+        } catch (IOException ex) {
+            System.getLogger(MainFrame.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+        }
         mostrarVistaBiblioteca();
     }//GEN-LAST:event_itemMostrarBibliotecaActionPerformed
 
@@ -444,7 +448,7 @@ public class MainFrame extends javax.swing.JFrame {
         //poner el config.json.
         try {
             // Guardar en el archivo JSON
-            GestorJson gestor = new GestorJson(guardado);
+            GestorJson gestor = new GestorJson(System.getProperty("user.home"));
             gestor.guardarConfiguracion(ytDlp, guardado, m3u, limite);
         } catch (IOException e) { // Usamos Exception para simplificar y capturar cualquier error de guardado
             JOptionPane.showMessageDialog(this,

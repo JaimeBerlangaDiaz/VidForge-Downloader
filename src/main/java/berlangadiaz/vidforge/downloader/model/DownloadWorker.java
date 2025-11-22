@@ -1,6 +1,7 @@
 package berlangadiaz.vidforge.downloader.model;
 
 // Imports necesarios
+import berlangadiaz.vidforge.downloader.view.BibliotecaPanel;
 import berlangadiaz.vidforge.downloader.view.MainFrame;
 import berlangadiaz.vidforge.downloader.view.MainViewPanel;
 import javax.swing.SwingWorker;
@@ -61,7 +62,8 @@ public class DownloadWorker extends SwingWorker<String, String> {
 
         try {
             Process process = pb.start();
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream(),"UTF-8"))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     publish(line); // Enviar al método process()
@@ -123,67 +125,89 @@ public class DownloadWorker extends SwingWorker<String, String> {
     }
 
     /**
-     * Se ejecuta cuando doInBackground() termina.
-     * Aquí es donde escribiremos en el JSON.
+     * Se ejecuta cuando doInBackground() termina. Aquí es donde se maneja la
+     * persistencia en el JSON y la actualización de la GUI.
      */
     @Override
     public void done() {
         try {
-            String resultado = get(); // Coge el "¡Descarga completada!"
+            String resultado = get(); // Coge el resultado final (ÉXITO o ERROR)
 
             if (resultado.contains("ÉXITO")) {
+
                 // --- 1. Lógica de persistencia (JSON) ---
-                
-                // Coge la ruta del archivo que guardamos
                 String rutaArchivoDescargado = mainView.getUltimoArchivoDescargado();
 
                 if (rutaArchivoDescargado != null && !rutaArchivoDescargado.isEmpty()) {
                     java.io.File file = new java.io.File(rutaArchivoDescargado);
 
                     if (file.exists()) {
-                        // Crea el objeto MediaFile
+                        // Crea el objeto MediaFile (asumiendo que tiene un constructor que recibe File)
                         MediaFile mediaFile = new MediaFile(file);
 
-                        // Coge la ruta de guardado (donde está el log.json)
                         String rutaCarpetaGuardado = parentFrame.getRutaGuardado();
 
                         // Llama al GestorJson para añadirlo al log
                         GestorJson gestor = new GestorJson(rutaCarpetaGuardado);
                         gestor.anadirArchivo(mediaFile);
+                        
+                        // CORRECCIÓN DEL BUG DE SINCRONIZACIÓN (Refresco de la tabla) ⬇️
+                        BibliotecaPanel bibliotecaPanel = parentFrame.getPanelBiblioteca();
+                        if (bibliotecaPanel != null) {
+
+                            // Usamos un Timer para dar tiempo al Sistema Operativo de finalizar la escritura
+                            // del log.json (aprox. 100ms) antes de intentar leerlo de nuevo.
+                            javax.swing.Timer timer = new javax.swing.Timer(100, new java.awt.event.ActionListener() {
+                                @Override
+                                public void actionPerformed(java.awt.event.ActionEvent e) {
+                                    try {
+                                        // Llama al método que recarga el log.json y actualiza la tabla
+                                        bibliotecaPanel.aplicarFiltrosYOrden();
+                                    } catch (IOException ex) {
+                                        System.getLogger(DownloadWorker.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                                    }
+                                    // Detenemos el Timer
+                                    ((javax.swing.Timer) e.getSource()).stop();
+                                }
+                            });
+                            timer.setRepeats(false);
+                            timer.start();
+                        }
+                        // ----------------------------------------------------------------------
                     }
                 }
-                
-                // --- 2. PREPARAR EL ICONO PARA EL DIÁLOGO EMERGENTE ---
+
+                // --- PREPARAR EL ICONO PARA EL DIÁLOGO EMERGENTE ---
                 ImageIcon successIcon = null;
                 try {
-                    // Carga la imagen desde la ruta que ya funciona (el formato debe ser .png)
+                    // Lógica de carga y redimensionado del icono
                     java.net.URL imageUrl = Thread.currentThread().getContextClassLoader().getResource("images/success_icon.png");
-                    
                     if (imageUrl != null) {
                         successIcon = new ImageIcon(imageUrl);
-                        // Redimensionar a un tamaño de diálogo estándar (32x32 píxeles)
                         java.awt.Image img = successIcon.getImage().getScaledInstance(32, 32, java.awt.Image.SCALE_SMOOTH);
                         successIcon = new ImageIcon(img);
-                    } 
+                    }
                 } catch (Exception e) {
                     System.err.println("Error al preparar icono para JOptionPane: " + e.getMessage());
                 }
-                // --- FIN DE PREPARAR ICONO ---
 
-                // --- 3. MOSTRAR DIÁLOGO (CON ICONO PERSONALIZADO) ---
-                // Usamos el overload con 5 parámetros (mensaje, título, tipo de mensaje, icono)
+                // --- MOSTRAR DIÁLOGO ---
                 JOptionPane.showMessageDialog(mainView, resultado,
-                        "Descarga Completada", JOptionPane.INFORMATION_MESSAGE, successIcon); 
-                
+                        "Descarga Completada", JOptionPane.INFORMATION_MESSAGE, successIcon);
+
             } else {
-                // Si falla (usa el icono de ERROR por defecto)
+                // Si falla la descarga
                 JOptionPane.showMessageDialog(mainView, resultado,
                         "Error de Descarga", JOptionPane.ERROR_MESSAGE);
             }
         } catch (InterruptedException | java.util.concurrent.ExecutionException ex) {
-            // Manejamos los errores de la tarea asíncrona
+            // Manejo de errores de la tarea asíncrona
             System.err.println("Error durante la ejecución asíncrona: " + ex.getMessage());
             JOptionPane.showMessageDialog(mainView, "Error crítico: " + ex.getMessage(), "Error Fatal", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception ex) {
+            // Capturamos cualquier error en la persistencia o creación del MediaFile
+            System.err.println("Error al procesar el archivo o actualizar la biblioteca: " + ex.getMessage());
+            JOptionPane.showMessageDialog(mainView, "Error de Persistencia: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } finally {
             // La descarga siempre termina, re-habilitamos el botón
             mainView.setBotonDescargarHabilitado(true);

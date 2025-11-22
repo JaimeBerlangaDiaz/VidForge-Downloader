@@ -106,28 +106,37 @@ public class GestorJson {
      * Carga todos los archivos MediaFile guardados en el historial (log.json).
      * SOLUCIONA EL ERROR: gestor.leerArchivos()
      */
-    public List<MediaFile> leerArchivos() {
+    /**
+     * Carga todos los archivos MediaFile guardados en el historial (log.json).
+     */
+    // MODIFICACIÓN: Añadimos 'throws IOException' al método ⬇️
+    public List<MediaFile> leerArchivos() throws IOException {
         asegurarRutaBase();
         File logFile = new File(rutaBase, LOG_FILE_NAME);
-        if (!logFile.exists() || logFile.length() == 0) {
+
+        // 1. Verificar y Crear Archivo
+        if (!logFile.exists()) {
+            logFile.createNewFile();
+        }
+
+        // 2. Verificar Archivo Vacío
+        if (logFile.length() == 0) {
             return new ArrayList<>();
         }
 
+        // 3. Lectura y Deserialización
+        // El try-with-resources ahora maneja la lectura, y la IOException se propaga.
         try (Reader reader = new FileReader(logFile)) {
-            // Usa TypeReference para deserializar una lista de MediaFile
             List<MediaFile> archivos = mapper.readValue(reader, new TypeReference<List<MediaFile>>() {
             });
             return (archivos != null) ? archivos : new ArrayList<>();
-        } catch (IOException e) {
-            System.err.println("Error al leer log.json con Jackson: " + e.getMessage());
-            return new ArrayList<>();
         }
     }
 
     /**
      * Añade un archivo al historial (log.json) y lo guarda.
      */
-    public void anadirArchivo(MediaFile archivoNuevo) {
+    public void anadirArchivo(MediaFile archivoNuevo) throws IOException {
         List<MediaFile> lista = leerArchivos(); // Lee la lista existente
         lista.add(0, archivoNuevo); // Añade el nuevo archivo al principio
         guardarArchivos(lista); // Guarda la lista completa
@@ -137,7 +146,7 @@ public class GestorJson {
      * Elimina una entrada del archivo JSON de historial y lo guarda. SOLUCIONA
      * EL ERROR: gestor.eliminarArchivo(archivoABorrar)
      */
-    public void eliminarArchivo(MediaFile archivoABorrar) {
+    public void eliminarArchivo(MediaFile archivoABorrar) throws IOException {
         List<MediaFile> lista = leerArchivos(); // Lee la lista existente
 
         // Encuentra y elimina el archivo basándose en la ruta
@@ -150,15 +159,12 @@ public class GestorJson {
      * Método auxiliar para serializar y guardar la lista completa al disco
      * usando Jackson.
      */
-    private void guardarArchivos(List<MediaFile> lista) {
+// ⬇️ MODIFICACIÓN: Añadimos 'throws IOException' al método ⬇️
+    private void guardarArchivos(List<MediaFile> lista) throws IOException {
         asegurarRutaBase();
         File logFile = new File(rutaBase, LOG_FILE_NAME);
-        try (FileWriter writer = new FileWriter(logFile)) {
-            // Usa writeValue para serializar la lista de objetos a JSON
-            mapper.writeValue(logFile, lista);
-        } catch (IOException e) {
-            System.err.println("Error al escribir en log.json: " + e.getMessage());
-        }
+        // Dejamos que Jackson lo maneje
+        mapper.writeValue(logFile, lista);
     }
 
     // --- MÉTODOS DE PERSISTENCIA DE YT-DLP ---

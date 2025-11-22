@@ -11,11 +11,13 @@ import java.util.List;
 import javax.swing.JFileChooser;
 import javax.swing.JComboBox;
 import javax.swing.JList;
+import javax.swing.BorderFactory;
 // --- Imports de nuestras clases ---
 import berlangadiaz.vidforge.downloader.model.GestorJson;
 import berlangadiaz.vidforge.downloader.model.MediaFile;
 import berlangadiaz.vidforge.downloader.model.ColumnaOrden;
 import berlangadiaz.vidforge.downloader.model.TipoMimeFiltro;
+import java.io.IOException;
 
 /**
  *
@@ -71,15 +73,26 @@ public class BibliotecaPanel extends javax.swing.JPanel {
             @Override
             public void valueChanged(javax.swing.event.ListSelectionEvent e) {
                 if (!e.getValueIsAdjusting()) {
-                    aplicarFiltrosYOrden();
+                    try {
+                        aplicarFiltrosYOrden();
+                    } catch (IOException ex) {
+                        System.getLogger(BibliotecaPanel.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                    }
                 }
             }
         });
         
+        //Esto garantiza que el panelAcciones (PAGE_END) no sea absorbido y los botones se vean correctamente.
+        panelAcciones.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
         cmbOrdenarPor.addActionListener(new java.awt.event.ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                aplicarFiltrosYOrden();
+                try {
+                    aplicarFiltrosYOrden();
+                } catch (IOException ex) {
+                    System.getLogger(BibliotecaPanel.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                }
             }
         });
         
@@ -87,26 +100,40 @@ public class BibliotecaPanel extends javax.swing.JPanel {
         
     }
     
-     /**
+    /**
      * Lanza la carga de datos. Es un simple lanzador del método principal.
      */
-    public void cargarDatosDelJson() {
-        aplicarFiltrosYOrden();
+    public void cargarDatosDelJson() throws IOException{
+        // ⬇️ AÑADIMOS EL TRY-CATCH OBLIGATORIO ⬇️
+        try {
+            aplicarFiltrosYOrden();
+        } catch (IOException e) {
+            // En caso de fallo de I/O (ej., archivo corrupto), lo informamos.
+            System.err.println("Error al cargar datos del JSON: " + e.getMessage());
+            javax.swing.JOptionPane.showMessageDialog(this,
+                    "Error al cargar la biblioteca. El archivo de historial puede estar dañado.",
+                    "Error de Lectura", javax.swing.JOptionPane.ERROR_MESSAGE);
+        }
     }
-    
+
     /**
      * ¡EL MÉTODO FINAL DE LA TAREA 2!
      * Carga los datos del JSON, los FILTRA (JList), los ORDENA (JComboBox) 
      * y los muestra en la tabla.
      */
-    public void aplicarFiltrosYOrden() {
+    public void aplicarFiltrosYOrden() throws IOException {
         System.out.println("Aplicando filtros y ordenación..."); 
         
         // 1. Coger la lista COMPLETA de archivos desde el JSON
         String rutaCarpetaGuardado = parentFrame.getRutaGuardado();
         GestorJson gestor = new GestorJson(rutaCarpetaGuardado);
-        java.util.List<MediaFile> listaCompleta = gestor.leerArchivos();
-
+        java.util.List<MediaFile> listaCompleta;
+        try {
+            listaCompleta = gestor.leerArchivos();
+        } catch (IOException e) {
+            System.err.println("Error FATAL al cargar la biblioteca: " + e.getMessage());
+            listaCompleta = new java.util.ArrayList<>(); // Usamos una lista vacía si hay error
+        }
         // 2. Obtener el estado de ordenación/dirección del MainFrame
         int columnaOrden = parentFrame.getColumnaOrdenActual();
         final boolean ASCENDENTE = parentFrame.isOrdenAscendente();
@@ -161,24 +188,6 @@ public class BibliotecaPanel extends javax.swing.JPanel {
         // 6. Finalmente, le decimos al "motor" de la tabla que muestre la lista
         tableModel.setArchivos(listaFiltrada);
         System.out.println("Carga finalizada. Registros mostrados: " + listaFiltrada.size());
-    }
-
-    /**
-     * Recarga los datos de la biblioteca desde el log.json y actualiza la
-     * JTable. Llamado después de una nueva descarga o una operación de borrado.
-     */
-    public void recargarTabla() {
-        // 1. Cargar los datos del log.json
-        GestorJson gestor = new GestorJson(parentFrame.getRutaGuardado());
-        List<MediaFile> archivos = gestor.leerArchivos(); // o el método que uses para cargar
-
-        // 2. Crear y establecer el nuevo modelo
-        MediaFileTableModel nuevoModelo = new MediaFileTableModel(archivos);
-        tablaArchivos.setModel(nuevoModelo);
-
-        // 3. Forzar el repintado de la tabla
-        tablaArchivos.revalidate();
-        tablaArchivos.repaint();
     }
 
     /**
@@ -278,8 +287,12 @@ public class BibliotecaPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnActualizarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnActualizarActionPerformed
-        //Llama al método que carga y aplica filtros
-        aplicarFiltrosYOrden();
+        try {
+            //Llama al método que carga y aplica filtros
+            aplicarFiltrosYOrden();
+        } catch (IOException ex) {
+            System.getLogger(BibliotecaPanel.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+        }
     }//GEN-LAST:event_btnActualizarActionPerformed
 
     private void btnBorrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBorrarActionPerformed
@@ -321,7 +334,7 @@ public class BibliotecaPanel extends javax.swing.JPanel {
                     gestor.eliminarArchivo(archivoABorrar); // (Este método ya lo creamos en GestorJson)
 
                     // 8. Refrescar la tabla
-                    cargarDatosDelJson();
+                    aplicarFiltrosYOrden();
                     
                     javax.swing.JOptionPane.showMessageDialog(this,
                             "Archivo borrado con éxito.",
@@ -348,7 +361,12 @@ public class BibliotecaPanel extends javax.swing.JPanel {
         // 2. Coger la lista COMPLETA de archivos desde el JSON
         String rutaCarpetaGuardado = parentFrame.getRutaGuardado();
         GestorJson gestor = new GestorJson(rutaCarpetaGuardado);
-        java.util.List<MediaFile> listaCompleta = gestor.leerArchivos();
+        java.util.List<MediaFile> listaCompleta = null;
+        try {
+            listaCompleta = gestor.leerArchivos();
+        } catch (IOException ex) {
+            System.getLogger(BibliotecaPanel.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+        }
 
         // 3. Si la barra de búsqueda está vacía, mostrarlo todo
         if (textoBusqueda.isEmpty()) {
@@ -393,8 +411,12 @@ public class BibliotecaPanel extends javax.swing.JPanel {
         // 3. Guardar la nueva columna en el MainFrame
         parentFrame.setColumnaOrdenActual(nuevoIndice);
         
-        // 4. Aplicar el filtro y orden
-        aplicarFiltrosYOrden();
+        try {
+            // 4. Aplicar el filtro y orden
+            aplicarFiltrosYOrden();
+        } catch (IOException ex) {
+            System.getLogger(BibliotecaPanel.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+        }
     }//GEN-LAST:event_cmbOrdenarPorActionPerformed
 
 
