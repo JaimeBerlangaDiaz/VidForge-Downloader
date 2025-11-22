@@ -47,6 +47,19 @@ public class GestorJson {
     public GestorJson(String rutaGuardado) {
         this.rutaBase = rutaGuardado;
     }
+    
+    //Método añadido para asegurar directorio base (FIX Issue)
+    /*
+    * Asegura que el directorio base donde se guardarán los archivos JSON exista.
+    * Crea el directorio si no existe para evitar File Not Found Exceptions
+    */
+    
+    private void asegurarRutaBase(){
+        File dir = new File(rutaBase);
+        if (!dir.exists()){
+            dir.mkdirs();
+        }
+    }
 
     // --- MÉTODOS ESTÁTICOS PARA EL TOKEN JWT (Ya revisados) ---
     public static void saveToken(String token, long expirationTime) {
@@ -94,6 +107,7 @@ public class GestorJson {
      * SOLUCIONA EL ERROR: gestor.leerArchivos()
      */
     public List<MediaFile> leerArchivos() {
+        asegurarRutaBase();
         File logFile = new File(rutaBase, LOG_FILE_NAME);
         if (!logFile.exists() || logFile.length() == 0) {
             return new ArrayList<>();
@@ -137,6 +151,7 @@ public class GestorJson {
      * usando Jackson.
      */
     private void guardarArchivos(List<MediaFile> lista) {
+        asegurarRutaBase();
         File logFile = new File(rutaBase, LOG_FILE_NAME);
         try (FileWriter writer = new FileWriter(logFile)) {
             // Usa writeValue para serializar la lista de objetos a JSON
@@ -173,7 +188,9 @@ public class GestorJson {
         config.limiteVelocidad = limite;
 
         File configFile = new File(rutaBase, CONFIG_FILE_NAME);
-
+        
+        // Llamada añadida, necesario antes de escribir config.json 
+        asegurarRutaBase();
         // Usamos Jackson (mapper) para SERIALIZAR (escribir)
         mapper.writeValue(configFile, config);
         System.out.println("Configuración de yt-dlp guardada exitosamente en: " + configFile.getAbsolutePath());

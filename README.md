@@ -1,112 +1,82 @@
-# VidForge Downloader
+# VidForge Downloader: Cliente DI Media Network
 
-Aplicación GUI simple para descargar vídeos y audio de plataformas online utilizando yt-dlp como motor.
+Aplicación GUI simple para descargar vídeos y audio de plataformas online utilizando yt-dlp como motor. Ha sido extendida para funcionar como cliente de la **DI Media Network**, gestionando autenticación y persistencia de preferencias.
 
 **Autor:** Jaime Berlanga Diaz
 **Curso:** Desarrollo de Interfaces - DI01 - 2024/2025
 
 ---
 
-## I. Implementación de la Tarea DI01_2 (Modelo y persistencia de datos)
+## I. Implementación UT02: FASE DE LOGIN Y PERSISTENCIA (Parte 1 Finalizada)
 
-### 1. Requisitos de la Tarea DI01_2 (Componentes)
-| **Clase Modelo** | Crear clase para representar el recurso. | 'MediaFile.java' (Clase principal para el log JSON) |
-| **JTable** | Integración con tabla (AbstractTableModel). | 'MediaFileTableModel' implementa 'AbstractTableModel'. |
-| **JList<Object>** | Usado para filtrar la biblioteca por tipo de contenido. | 'listFiltroTipo' utiliza objetos 'TipoMimeFiltro'. |
-| **JComboBox<Object>**| Usado para ordenar la biblioteca por columna. | 'cmbOrdenarPor' utiliza objetos 'ColumnaOrden'. |
+### A. Autenticación y Flujo de Sesión (DI Media Network)
 
-### 2. Funcionalidades Extra Implementadas (Finales)
+* **URL Base de la API:** `https://dimedianetapi9.azurewebsites.net`
+* **Flujo de Sesión:** Implementación del flujo de **Auto-Login** y **Logout** guardando el token JWT en **Java Preferences**.
+* **Cliente API:** **`ApiClient.java`** implementado para gestionar las peticiones de autenticación.
 
-Se han consolidado las funcionalidades extra en un solo punto, incluyendo la Biblioteca (DI01_2) y las de Calidad/Límite (DI01_1):
+### B. Persistencia de Preferencias de Descarga (Jackson)
 
-* **Biblioteca Basada en JSON:** La tabla de la biblioteca se carga a partir de un archivo 'log.json', permitiendo la gestión de un historial de descargas persistente.
-* **Ordenación Bidireccional:** La selección repetida de una columna ('Nombre', 'Tamaño', 'Fecha') en el JComboBox invierte el orden (A->Z / Z->A).
-* **Filtrado Activo:** La tabla se filtra automáticamente al seleccionar un tipo (Vídeos/Audios) en el JList.
-* **Icono de Éxito Visual:** Se utiliza una imagen 'success_icon.png' para mostrar una confirmación de la descarga dentro del 'JOptionPane'.
-* **Selección de Calidad de Vídeo/Audio:** Opciones específicas para 1080p/720p y calidad de audio (Buena/Normal).
-* **'JComboBox' Dinámico:** El desplegable de formatos ('cmbFormato') cambia su contenido (vídeo/audio) según la casilla 'Descargar solo audio'.
-* **Detección Multiplataforma:** El valor por defecto de 'yt-dlp' se adapta a Windows ('yt-dlp.exe') o Mac/Linux ('yt-dlp').
-* **Límite de Velocidad:** La opción de 'JSpinner' para limitar la velocidad está implementada y se pasa a 'yt-dlp' (ej. '-r 500K').
+* **Librería:** **Jackson (versión 3.0.0)**.
+* **Manejo de Preferencias:** El **`GestorJson.java`** se encarga de serializar y deserializar la configuración (`rutaYtDlp`, `limiteVelocidad`, `crearM3u`) en el archivo **`config.json`**.
 
----
+### C. Consultas de Verificación (API Endpoints)
 
-## II. Recursos Utilizados
+Se verificó el correcto funcionamiento de los *endpoints* de la DI Media Network:
 
-Para el desarrollo de esta tarea, se han utilizado los siguientes recursos principales, además de los proporcionados en la unidad:
-
-* **yt-dlp (Recurso Externo):** Herramienta de línea de comandos fundamental para la descarga.
-  * *Enlace:* <https://github.com/yt-dlp/yt-dlp>
-
-* **ffmpeg (Recurso Externo):** Necesario para el post-procesado (conversión de formatos, extracción de audio).
-  * *Enlace:* <https://ffmpeg.org/>
-
-* **Homebrew (macOS) (Recurso Externo):** Para la instalación y gestión de 'yt-dlp' y 'ffmpeg' en el entorno de desarrollo de macOS.
-  * *Enlace:* <https://brew.sh/index_es>
-
-* **NetBeans IDE y JDK 24:** El entorno de desarrollo y el kit de Java proporcionados por el curso.
-
-* **Asistente AI (Gemini) (LLM):** Se utilizó este LLM como asistente de consulta para validar sintaxis de patrones de diseño,confirmar la estructura del 'AbstractTableModel' y depurar errores complejos.
+| Endpoint | Método | Descripción |
+| :--- | :--- | :--- |
+| `/api/Users/register` | `POST` | Creación de un nuevo usuario. |
+| `/api/Users/login` | `POST` | Obtención del token JWT. |
+| `/api/Files/me` | `GET` | Verificación de token y obtención de archivos del usuario. |
+| `/api/Files/upload` | `POST` | Subida de archivos multimedia (max 10MB). |
+| `/api/Files/all` | `GET` | Obtención de todos los recursos de la red. |
+| `/api/Files/{id}` | `GET` | Descarga de un archivo específico por su ID. |
+| `/api/Users/{id}/nickname` | `GET` | Consulta del apodo del usuario que subió el archivo. |
 
 ---
 
-## III. Citas de Código y Conceptos Aplicados
+## II. Implementación de la FASE BASE (DI01\_2)
 
-La mayor parte del código de lógica no fue copiado directamente, sino implementado basándose en los siguientes conceptos estándar de Java y Swing:
-
-1.  **Persistencia de Datos ('Gson'):**
-    * **Propósito:** Guardar objetos Java complejos ('Configuracion', 'MediaFile') en archivos JSON ('config.json', 'log.json').
-    * **Código Aplicado:** Toda la clase 'GestorJson.java' y las estructuras de datos dentro de 'MediaFile.java'.
-    * **Concepto Base (Tutorial):** <https://www.baeldung.com/gson>
-
-2.  **Ejecución de Procesos Externos ('ProcessBuilder' y 'SwingWorker'):**
-    * **Propósito:** Ejecutar 'yt-dlp' de forma asíncrona y no bloquear la interfaz gráfica (GUI).
-    * **Código Aplicado:** Implementación de 'DownloadWorker.java' (que usa 'SwingWorker') y la lógica de 'ProcessBuilder' para la ejecución y captura de la salida de consola.
-    * **Concepto Base (Tutorial):** <https://docs.oracle.com/javase/tutorial/uiswing/concurrency/worker.html>
-
-3.  **Patrón MVC - Adaptadores de Datos:**
-    * **Propósito:** Conectar el modelo de datos (listas de objetos 'MediaFile') con los componentes visuales de Swing.
-    * **Código Aplicado:** Implementación de 'MediaFileTableModel.java' (extiende AbstractTableModel) para la JTable y el uso de DefaultComboBoxModel y DefaultListModel para JComboBox y JList.
-
-4.  **Atajo de Teclado Pegar (Cmd+V) en macOS:**
-    * **Propósito:** Arreglar un bug conocido de Swing en macOS donde 'Cmd+V' no funciona para pegar en un 'JTextField'.
-    * **Concepto Base (Hilo de StackOverflow):** <https://stackoverflow.com/questions/2114268/how-to-implement-cut-copy-paste-in-a-java-swing-application-on-mac-os-x>
-
-5.  **Selector de Archivos ('JFileChooser'):**
-    * **Propósito:** Permitir al usuario seleccionar la ruta de 'yt-dlp' y la carpeta de guardado.
-    * **Concepto Base (Tutorial):** <https://docs.oracle.com/javase/tutorial/uiswing/components/filechooser.html>
+* **Biblioteca Basada en JSON:** La tabla se carga a partir de un archivo **`log.json`**.
+* **Componentes de Control:** **`MediaFileTableModel`** (para `JTable`), `JList<Object>` para filtrar por tipo de contenido, y `JComboBox<Object>` para ordenar por columna.
+* **Ejecución de Procesos:** **`DownloadWorker.java`** utiliza **`SwingWorker`** para la ejecución asíncrona de `yt-dlp`.
 
 ---
 
-## IV. Problemas Encontrados y Soluciones (Consolidado)
+## III. Problemas Encontrados y Soluciones (Consolidado y Referenciado)
 
-1.  **Refactorización del Proyecto (Clean Code):**
-    * **Problema:** Mover las clases a los paquetes `view` y `model` causó errores de `ClassNotFoundException` y problemas de visibilidad entre paquetes.
-    * **Solución:** Se corrigió el `pom.xml` para actualizar la `exec.mainClass` a `berlangadiaz.vidforge.downloader.view.MainFrame` y se hicieron públicos los campos de la clase auxiliar `GestorJson.Configuracion` para permitir el acceso entre paquetes.
+### 1. Problemas de Compilación y Persistencia (UT02)
 
-2.  **Bug de Persistencia:**
-    * **Problema:** La configuración se perdía porque el 'config.json' se leía tarde o no se leía.
-    * **Solución:** Se modificó el constructor de `MainFrame.java` para cargar los valores del `config.json` antes de la inicialización de los componentes.
+| Problema | Solución Implementada | Fuente Técnica |
+| :--- | :--- | :--- |
+| **Error de Compilación `IOException is never thrown`** | El compilador no reconocía que Jackson lanzaba la excepción. Se implementó el patrón **`throws IOException`** en `GestorJson.java` para obligar al compilador a aceptar el código. | [Manejo de Checked Exceptions (Oracle Docs)](https://docs.oracle.com/javase/tutorial/essential/exceptions/declaring.html) |
+| **Conflicto de Dependencias/Caché** | El `Group ID` y `Version` de Jackson entraron en conflicto. Se resolvió mediante limpieza profunda y el ajuste explícito del `pom.xml` para la configuración de Java 25. | (Solución de entorno interno) |
+| **Error de Sintaxis en Deserialización de Listas** | Fallo en la lectura de `List<MediaFile>` debido a la complejidad del tipado genérico. Se corrigió la sintaxis de la clase anónima. | [Stack Overflow: Deserializar Listas con TypeReference](https://stackoverflow.com/questions/2178229/how-to-deserialize-a-list-of-objects-with-jackson) |
 
-3.  **Bug de Tipado/Compilación de Componentes (DI01_2):**
-    * **Problema:** El Diseñador de NetBeans generaba problemas de 'incompatible types' con 'JComboBox' y 'JList' al intentar inyectar objetos complejos (`ColumnaOrden`, `TipoMimeFiltro`).
-    * **Solución:** Se eliminaron los modelos de ejemplo del Diseñador y se inyectaron los modelos de objetos mediante código en el constructor de `BibliotecaPanel.java`.
+### 2. Problemas de Interfaz y Lógica Base (DI01\_2)
 
-4.  **Bug de Acceso a Componentes (Clean Code):**
-    * **Problema:** La clase `DownloadWorker` no podía re-habilitar el botón `btnDescargar` porque era `private` en `MainViewPanel`.
-    * **Solución:** Se implementó el método público **`setBotonDescargarHabilitado(boolean)`** en `MainViewPanel.java` para actuar como un método "puente" y mantener el encapsulamiento.
-
-5.  **Bug de Layout (Visual):**
-    * **Problema:** Después de la refactorización, la ventana principal aparecía en un tamaño diminuto, solo mostrando la barra de menú.
-    * **Solución:** Se forzó el tamaño fijo de la ventana (`setSize(800, 600)`) y se corrigieron los `setBounds` del `panelContenedor` dentro de `MainFrame.initComponents()`.
-
-6.  **Borrado y Reproducción de Archivos:**
-    * **Problema:** El borrado de archivos y la reproducción del último archivo fallaban porque usaban rutas temporales o instancias desactualizadas de `java.io.File`.
-    * **Solución:** Se corrigió el código para que siempre se obtenga la ruta final de las líneas de log de 'yt-dlp' y se usen nuevas instancias de `File` al ejecutar operaciones.
-
-7.  **Problemas de Entorno (Antiguos):** Confusión al crear el proyecto Maven dentro del repositorio Git, autenticación de Git con GitHub (solucionado con PAT), uso de componentes de menú incorrectos y errores en comandos de 'yt-dlp'.
+| Problema | Solución Implementada | Fuente Técnica |
+| :--- | :--- | :--- |
+| **Bug de Acceso a Componentes** | `DownloadWorker` no podía re-habilitar el botón `btnDescargar`. Se implementó el método público **`setBotonDescargarHabilitado(boolean)`** para mantener el encapsulamiento. | (Patrón de diseño Adapter/Puente) |
+| **Atajo de Teclado Pegar (macOS)** | El `Cmd+V` no funcionaba en `JTextField`. Se corrigió mediante la creación de un nuevo `KeyStroke` con `InputEvent.META_DOWN_MASK`. | [Stack Overflow: Implementar Cmd+V en JTextComponent](https://stackoverflow.com/questions/2114268/how-to-implement-cut-copy-paste-in-a-java-swing-application-on-mac-os-x) |
+| **Ejecución Asíncrona Lenta** | El proceso `yt-dlp` bloqueaba la GUI. Se implementó **`DownloadWorker.java`** heredando de `SwingWorker`. | [Documentación oficial de Oracle sobre SwingWorker](https://docs.oracle.com/javase/tutorial/uiswing/concurrency/worker.html) |
+| **Bug de Tipado/Compilación Componentes** | El diseñador generaba errores con `JComboBox` y `JList` al inyectar objetos complejos. Se resolvió inyectando los modelos de objetos mediante código en `BibliotecaPanel.java`. | (Patrón MVC - Adaptadores) |
 
 ---
 
-## V. Incidencias / Funcionalidades Pendientes
+## IV. Citas y Recursos Adicionales
 
-* La opción **'Crear .m3u para listas'** ('chkCrearM3u') está en la GUI de Preferencias y se guarda/carga, pero la lógica para añadir el argumento correspondiente al comando de 'yt-dlp' **no está implementada**.
+1.  **Librerías de Persistencia y Concurrencia:**
+    * **Jackson:** [Tutorial básico de Jackson ObjectMapper (Baeldung)](https://www.baeldung.com/jackson-objectmapper-tutorial)
+    * **SwingWorker (Concurrencia):** [Documentación oficial de Oracle sobre SwingWorker](https://docs.oracle.com/javase/tutorial/uiswing/concurrency/worker.html)
+2.  **Herramientas Externas:** `yt-dlp`, `ffmpeg`, Homebrew (macOS).
+    * [yt-dlp](https://github.com/yt-dlp/yt-dlp), [ffmpeg](https://ffmpeg.org/)
+3.  **Asistencia de IA:** Se utilizó **Google Gemini** (IA) para la depuración de errores, validación de sintaxis.
+---
+
+## V. Instrucciones de Construcción y Próximos Pasos
+
+* **Requisitos:** JDK 25, Maven (configurado en el PATH).
+* **Construcción:** Clic derecho en el proyecto -> **Clean and Build**.
+* **Próximos Pasos:** El proyecto está listo para la implementación de la **Parte 2: Creación del Componente JavaBean de Polling** y la **Parte 3: Integración**.

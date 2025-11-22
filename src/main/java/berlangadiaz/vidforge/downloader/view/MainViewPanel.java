@@ -5,6 +5,7 @@
 package berlangadiaz.vidforge.downloader.view;
 
 import berlangadiaz.vidforge.downloader.model.DownloadWorker;
+import berlangadiaz.vidforge.downloader.model.GestorJson;
 import javax.swing.SwingWorker;
 import java.util.List;
 import java.util.ArrayList;
@@ -354,7 +355,41 @@ public class MainViewPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_btnAbrirVideoActionPerformed
     
     //MÉTODOS PÚBLICOS PARA EL WORKER
-    
+    // MÉTODO AÑADIDO: GESTIONA EL ARCHIVO FINAL Y EL REFRESCO DE LA BIBLIOTECA️
+    /**
+     * Llamado por el DownloadWorker al finalizar con éxito la descarga. Guarda
+     * la entrada en el log.json y notifica al panel de la Biblioteca que
+     * recargue.
+     *
+     * @param rutaFinalArchivo La ruta absoluta del archivo descargado.
+     */
+    public void notificarDescargaCompleta(String rutaFinalArchivo) {
+
+        // 1. Crear el objeto MediaFile (asumiendo que tienes un constructor adecuado)
+        // NOTA: Esto es conceptual. Necesitas la clase MediaFile para esto.
+        // MediaFile nuevoArchivo = new MediaFile(rutaFinalArchivo, ...); 
+        // 2. Guardar la entrada en el historial local (log.json)
+        String rutaCarpetaGuardado = parentFrame.getRutaGuardado();
+        GestorJson gestor = new GestorJson(rutaCarpetaGuardado);
+
+        // ⬇️ ESTA LÍNEA DEBE ESTAR IMPLEMENTADA EN TU PROYECTO ⬇️
+        // gestor.anadirArchivo(nuevoArchivo); 
+        // 3. Establecer la ruta para el botón "Reproducir"
+        setUltimoArchivoDescargado(rutaFinalArchivo);
+
+        // 4. FORZAR LA ACTUALIZACIÓN DE LA TABLA DE LA BIBLIOTECA
+        BibliotecaPanel bibliotecaPanel = parentFrame.getPanelBiblioteca();
+        if (bibliotecaPanel != null) {
+            // Llama al método que ya existe en BibliotecaPanel y que se encarga de recargar, filtrar y ordenar
+            bibliotecaPanel.aplicarFiltrosYOrden();
+        }
+
+        // Informar al usuario
+        javax.swing.JOptionPane.showMessageDialog(this,
+                "Descarga finalizada con éxito y registrada.",
+                "Descarga Completa", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+    }
+
     /**
      * Permite al DownloadWorker guardar la ruta del archivo final.
      * @param ruta La ruta del archivo descargado

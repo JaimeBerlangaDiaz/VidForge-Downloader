@@ -24,6 +24,19 @@ public class MediaFileTableModel extends AbstractTableModel{
         this.archivos = new ArrayList<>();
     }
     
+    /**
+     * Constructor que inicializa el modelo con una lista predefinida de archivos.
+     * Este constructor es necesario para la carga inicial y el refresco de la tabla.
+     * @param archivos La lista de objetos MediaFile a mostrar en la JTable.
+     */
+    public MediaFileTableModel(List<MediaFile> archivos) {
+        this.archivos = archivos; 
+        // Llama a fireTableDataChanged() al final del setArchivos/setArchivos para notificar el cambio,
+        // pero podemos asumir que el llamador lo hará si lo inicializamos aquí, 
+        // o podemos llamarlo para estar seguros:
+        fireTableDataChanged(); 
+    }
+    
     // Métodos obligatorios de AbstractModel
     
     /**

@@ -162,6 +162,25 @@ public class BibliotecaPanel extends javax.swing.JPanel {
         tableModel.setArchivos(listaFiltrada);
         System.out.println("Carga finalizada. Registros mostrados: " + listaFiltrada.size());
     }
+
+    /**
+     * Recarga los datos de la biblioteca desde el log.json y actualiza la
+     * JTable. Llamado después de una nueva descarga o una operación de borrado.
+     */
+    public void recargarTabla() {
+        // 1. Cargar los datos del log.json
+        GestorJson gestor = new GestorJson(parentFrame.getRutaGuardado());
+        List<MediaFile> archivos = gestor.leerArchivos(); // o el método que uses para cargar
+
+        // 2. Crear y establecer el nuevo modelo
+        MediaFileTableModel nuevoModelo = new MediaFileTableModel(archivos);
+        tablaArchivos.setModel(nuevoModelo);
+
+        // 3. Forzar el repintado de la tabla
+        tablaArchivos.revalidate();
+        tablaArchivos.repaint();
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
