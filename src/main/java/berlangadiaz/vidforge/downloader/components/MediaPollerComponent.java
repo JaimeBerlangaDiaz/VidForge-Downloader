@@ -8,6 +8,7 @@ import berlangadiaz.vidforge.downloader.events.NewMediaListener;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Image;
 import java.io.File;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -15,6 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
@@ -51,11 +53,32 @@ public class MediaPollerComponent extends JPanel {
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createLineBorder(Color.GRAY));
         
-        statusLabel = new JLabel("Poller: Stopped");
+        // Configuramos el texto inicial
+        statusLabel = new JLabel(" Poller: Stopped"); 
         statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
         statusLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        // Si tenemos un icono, podemos ponerlo aquí [PONER MÁS TARDE]
-        // statusLabel.setIcon(new ImageIcon(getClass().getResource("/ruta/icono.png")));
+        
+        // Cargamos y Redimensionamos el Icono
+        try {
+            // Buscamos la imagen dentro del paquete resources. 
+            // LA RUTA DEBE EMPEZAR CON / Y SEGUIR LA ESTRUCTURA DE PAQUETES:
+            java.net.URL imgUrl = getClass().getResource("/images/poller_icon.png");
+            
+            if (imgUrl != null) {
+                // Cargamos la imagen original (que es grande)
+                ImageIcon originalIcon = new ImageIcon(imgUrl);
+                
+                // La redimensionamos a 20x20 píxeles para que quede elegante
+                Image scaledImage = originalIcon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
+                
+                // Se la ponemos al Label
+                statusLabel.setIcon(new ImageIcon(scaledImage));
+            } else {
+                System.err.println("⚠ No se encontró la imagen en '/images/poller_icon.png' ");
+            }
+        } catch (Exception e) {
+            System.err.println("⚠ Error cargando el icono: " + e.getMessage());
+        }
         
         add(statusLabel, BorderLayout.CENTER);
 
@@ -64,7 +87,7 @@ public class MediaPollerComponent extends JPanel {
         timer = new Timer(pollingInterval * 1000, e -> performPoll());
         timer.setRepeats(true);
         
-        // 3. Inicializar LastChecked a "Ahora" para no bajar todo el historial al arrancar
+        // Inicializamos LastChecked a "Ahora" para no bajar todo el historial al arrancar
         updateLastCheckedToNow();
     }
 
