@@ -4,19 +4,25 @@
  */
 package berlangadiaz.vidforge.downloader.view;
 
+import berlangadiaz.vidforge.downloader.components.MediaPollerComponent;
+import berlangadiaz.vidforge.downloader.events.NewMediaEvent;
+import berlangadiaz.vidforge.downloader.events.NewMediaListener;
 import berlangadiaz.vidforge.downloader.model.DownloadWorker;
 import berlangadiaz.vidforge.downloader.model.GestorJson;
 import javax.swing.SwingWorker;
+import javax.swing.SwingUtilities;
 import java.util.List;
 import java.util.ArrayList;
 import java.io.File;
 import java.awt.Desktop;
+import java.awt.Dimension;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.lang.ProcessBuilder;
 import java.lang.Process;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JOptionPane;
 
 /**
  * Panel principal de descarga de VidForge Downloader.
@@ -26,7 +32,10 @@ import javax.swing.DefaultComboBoxModel;
  * @author Jaime Berlanga Diaz
  */
 public class MainViewPanel extends javax.swing.JPanel {
-
+    
+    //Declaración del componente Poller.
+    private MediaPollerComponent poller;
+    
     private String ultimoArchivoDescargado = "";
     
     // (Esta variable la necesitaremos para el 'parentFrame' de PreferenciasPanel, 
@@ -73,7 +82,84 @@ public class MainViewPanel extends javax.swing.JPanel {
                 java.awt.event.InputEvent.META_DOWN_MASK
         );
         txtUrl.getInputMap().put(commandV, "paste");
+        
+        //INTEGRACIÓN DEL POLLER
+        
+        // Instanciamos el componente
+        poller = new MediaPollerComponent();
+        
+        // Configuración
+        // Ponemos aquí la URL base de la API
+        poller.setApiUrl(parentFrame.getApiUrl()); 
+        poller.setPollingInterval(15); // Comprobamos cada 15 segundos
+        
+        // Escuchamos los eventos (Cuando encuentra archivos nuevos)
+        poller.addNewMediaListener(new NewMediaListener() {
+            @Override
+            public void onNewMediaFound(NewMediaEvent evt) {
+                SwingUtilities.invokeLater(() -> {
+                    String msg = "¡Nuevos archivos detectados en el servidor!\n" + 
+                                 "Cantidad: " + evt.getNewMediaList().size() + "\n" +
+                                 "Hora: " + evt.getDetectionTime();
+                    
+                    int opcion = JOptionPane.showConfirmDialog(MainViewPanel.this, 
+                            msg + "\n¿Quieres recargar la lista ahora?", 
+                            "Novedades detectadas", 
+                            JOptionPane.YES_NO_OPTION);
+                    
+                    if (opcion == JOptionPane.YES_OPTION) {
+                        // Refrescamos la biblioteca si existe
+                        BibliotecaPanel biblioteca = parentFrame.getPanelBiblioteca();
+                        if (biblioteca != null) {
+                            try {
+                                System.out.println("Usuario aceptó. Refrescando biblioteca...");
+                                biblioteca.aplicarFiltrosYOrden();
+                            } catch (IOException ex) {
+                                System.getLogger(MainViewPanel.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                            }
+                        }
+                    }
+                });
+            }
+        });
+
+        // Lo Añadimos visualmente a la ventana.
+        // Por ahora lo añadimos al propio panel.(Posiblemente tengamos que ajustarlo)
+        poller.setPreferredSize(new Dimension(200, 30));
+        // Ajustamos la posición manualmente ya que usamos Layout Null
+        // Lo ponemos arriba a la derecha o donde quepa.
+        this.add(poller);
+        poller.setBounds(220,0,200,30); //Ajustaremos si tapa algo
+        
+        // Forzar repintado para que aparezca
+        this.revalidate();
+        this.repaint();
     }
+    
+    // --- MÉTODOS PARA CONTROLAR EL POLLER DESDE EL MAIN FRAME ---
+
+    /**
+     * Se llama cuando el Login es exitoso.
+     * Le da el token al poller y lo enciende.
+     */
+    public void iniciarPoller(String token) {
+        if (poller != null) {
+            poller.setToken(token);
+            poller.setRunning(true);
+            System.out.println("MainViewPanel: Poller iniciado.");
+        }
+    }
+
+    /**
+     * Se llama al cerrar sesión o salir.
+     */
+    public void detenerPoller() {
+        if (poller != null) {
+            poller.setRunning(false);
+            System.out.println("MainViewPanel: Poller detenido.");
+        }
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

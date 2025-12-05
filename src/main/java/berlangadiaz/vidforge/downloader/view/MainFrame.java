@@ -409,6 +409,14 @@ public class MainFrame extends javax.swing.JFrame {
         panelContenedor.add(mainViewPanel, java.awt.BorderLayout.CENTER);
         panelContenedor.revalidate();
         panelContenedor.repaint();
+        
+        //Arrancamos el Poller(Parte 2 de la tarea)
+        //Le pasamos el token actual al panel para que empiece a buscar archivos.
+        if (this.currentJwtToken != null && !this.currentJwtToken.isEmpty()){
+            mainViewPanel.iniciarPoller(this.currentJwtToken);
+        } else {
+            System.err.println("Advertencia!!: Se intentó iniciar el Poller sin token.");
+        }
 
         // Mostrar los menús al estar logueado
         if (jMenuBar1 != null) {
@@ -509,6 +517,11 @@ public class MainFrame extends javax.swing.JFrame {
     }
     public void setOrdenAscendente(boolean ordenAscendente){
         this.ordenAscendente = ordenAscendente;
+    }
+    // Getter para compartir la URL de la API con los hijos y el día de mañana
+    // si se cambiara la URL no tener que cambiarla en todos lados.
+    public String getApiUrl() {
+        return API_BASE_URL;
     }
    
     // Variables declaration - do not modify//GEN-BEGIN:variables
