@@ -42,6 +42,21 @@ Se verificó el correcto funcionamiento de los *endpoints* de la DI Media Networ
 * **Componentes de Control:** **`MediaFileTableModel`** (para `JTable`), `JList<Object>` para filtrar por tipo de contenido, y `JComboBox<Object>` para ordenar por columna.
 * **Ejecución de Procesos:** **`DownloadWorker.java`** utiliza **`SwingWorker`** para la ejecución asíncrona de `yt-dlp`.
 
+## II.I Implementación UT02: COMPONENTE DE POLLING (Parte 2 Finalizada)
+
+Esta fase se centró en la creación de un componente visual independiente (**Java Bean**) para la monitorización activa de la red.
+
+### A. Componente `MediaPollerComponent` (Java Bean)
+* **Desarrollo Manual:** Componente creado programáticamente heredando de `JPanel` (sin Designer).
+* **Polling Activo:** Implementación de un `javax.swing.Timer` para realizar consultas periódicas a la API cada 15 segundos (configurable).
+* **Feedback Visual:** Incluye un `JLabel` con un icono y texto ("Running" / "Stopped").
+* **Wrappers:** Encapsula la lógica de `ApiClient`, exponiendo métodos como `login` y `getAllMedia`.
+
+### B. Sistema de Eventos y Sincronización
+* **`NewMediaEvent`:** Objeto que transporta la lista de nuevos archivos detectados.
+* **`NewMediaListener`:** Interfaz para la suscripción de eventos.
+* **Integración:** El componente se inicia tras el Login y, al detectar archivos, permite al usuario **recargar la biblioteca automáticamente**.
+
 ---
 
 ## III. Problemas Encontrados y Soluciones (Consolidado y Referenciado)
@@ -63,6 +78,12 @@ Se verificó el correcto funcionamiento de los *endpoints* de la DI Media Networ
 | **Ejecución Asíncrona Lenta** | El proceso `yt-dlp` bloqueaba la GUI. Se implementó **`DownloadWorker.java`** heredando de `SwingWorker`. | [Documentación oficial de Oracle sobre SwingWorker](https://docs.oracle.com/javase/tutorial/uiswing/concurrency/worker.html) |
 | **Bug de Tipado/Compilación Componentes** | El diseñador generaba errores con `JComboBox` y `JList` al inyectar objetos complejos. Se resolvió inyectando los modelos de objetos mediante código en `BibliotecaPanel.java`. | (Patrón MVC - Adaptadores) |
 
+### 3. Retos Técnicos de la Parte 2 (Polling)
+
+| Problema | Solución Implementada | Fuente Técnica |
+| :--- | :--- | :--- |
+| **Conversión de Tiempo** | El Timer usa milisegundos, la propiedad usa segundos. Se implementó conversión interna. | [Docs javax.swing.Timer](https://docs.oracle.com/javase/8/docs/api/javax/swing/Timer.html) |
+| **Sincronización Hilos** | Conflictos de UI desde el Timer. Se utilizó `SwingUtilities.invokeLater()` en el Listener. | [Concurrencia en Swing](https://docs.oracle.com/javase/tutorial/uiswing/concurrency/initial.html) |
 ---
 
 ## IV. Citas y Recursos Adicionales
@@ -70,9 +91,21 @@ Se verificó el correcto funcionamiento de los *endpoints* de la DI Media Networ
 1.  **Librerías de Persistencia y Concurrencia:**
     * **Jackson:** [Tutorial básico de Jackson ObjectMapper (Baeldung)](https://www.baeldung.com/jackson-objectmapper-tutorial)
     * **SwingWorker (Concurrencia):** [Documentación oficial de Oracle sobre SwingWorker](https://docs.oracle.com/javase/tutorial/uiswing/concurrency/worker.html)
-2.  **Herramientas Externas:** `yt-dlp`, `ffmpeg`, Homebrew (macOS).
+
+2.  **Polling y Timers (Parte 2):**
+    * *Concepto:* Uso de `javax.swing.Timer` para tareas periódicas en interfaces gráficas sin bloquear el hilo principal.
+    * *Referencia Oficial:* [How to Use Swing Timers (Oracle Docs)](https://docs.oracle.com/javase/tutorial/uiswing/misc/timer.html)
+    * *Discusión Técnica:* [Diferencia entre javax.swing.Timer y java.util.Timer (Stack Overflow)](https://stackoverflow.com/questions/25025715/javax-swing-timer-vs-java-util-timer-inside-of-a-swing-application)
+    * *Implementación:* [Cómo refrescar un componente periódicamente](https://stackoverflow.com/questions/33489705/java-using-swing-timer-to-do-a-task-every-1-100-seconds)
+
+3. **Arquitectura de Componentes y Eventos (Parte 2):**
+    * *Sistema de Eventos:* Implementación del patrón Observer mediante `EventObject` y `EventListener` para desacoplar el componente de la interfaz.
+    * *Referencia:* [Writing Event Listeners (Oracle Java Tutorials)](https://docs.oracle.com/javase/tutorial/uiswing/events/index.html)
+
+4.  **Herramientas Externas:** `yt-dlp`, `ffmpeg`, Homebrew (macOS).
     * [yt-dlp](https://github.com/yt-dlp/yt-dlp), [ffmpeg](https://ffmpeg.org/)
-3.  **Asistencia de IA:** Se utilizó **Google Gemini** (IA) para la depuración de errores, validación de sintaxis.
+5.  **Asistencia de IA:** Se utilizó **Google Gemini** (IA) para la depuración de errores, validación de sintaxis.
+
 ---
 
 ## V. Instrucciones de Construcción y Próximos Pasos

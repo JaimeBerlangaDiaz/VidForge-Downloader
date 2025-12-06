@@ -9,18 +9,12 @@ import berlangadiaz.vidforge.downloader.events.NewMediaEvent;
 import berlangadiaz.vidforge.downloader.events.NewMediaListener;
 import berlangadiaz.vidforge.downloader.model.DownloadWorker;
 import berlangadiaz.vidforge.downloader.model.GestorJson;
-import javax.swing.SwingWorker;
 import javax.swing.SwingUtilities;
 import java.util.List;
 import java.util.ArrayList;
 import java.io.File;
-import java.awt.Desktop;
 import java.awt.Dimension;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.IOException;
-import java.lang.ProcessBuilder;
-import java.lang.Process;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 
@@ -90,8 +84,11 @@ public class MainViewPanel extends javax.swing.JPanel {
         
         // Configuración
         // Ponemos aquí la URL base de la API
-        poller.setApiUrl(parentFrame.getApiUrl()); 
-        poller.setPollingInterval(15); // Comprobamos cada 15 segundos
+        poller.setApiUrl(parentFrame.getApiUrl());
+        
+        // Comprobamos cada 15 segundos en el componente le indicamos que
+        // el PollingInterval que pongamos lo multiplique por 1000 para convertirlo a ms.
+        poller.setPollingInterval(15); 
         
         // Escuchamos los eventos (Cuando encuentra archivos nuevos)
         poller.addNewMediaListener(new NewMediaListener() {

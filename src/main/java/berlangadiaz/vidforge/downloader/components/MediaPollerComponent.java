@@ -12,7 +12,6 @@ import java.awt.Image;
 import java.io.File;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.BorderFactory;
@@ -69,7 +68,7 @@ public class MediaPollerComponent extends JPanel {
                 ImageIcon originalIcon = new ImageIcon(imgUrl);
                 
                 // La redimensionamos a 20x20 píxeles para que quede elegante
-                Image scaledImage = originalIcon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
+                Image scaledImage = originalIcon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
                 
                 // Se la ponemos al Label
                 statusLabel.setIcon(new ImageIcon(scaledImage));
@@ -217,7 +216,7 @@ public class MediaPollerComponent extends JPanel {
     public void setPollingInterval(int pollingInterval) {
         this.pollingInterval = pollingInterval;
         if (timer != null) {
-            timer.setDelay(pollingInterval * 1000); // Actualizar timer
+            timer.setDelay(pollingInterval * 1000); // Actualizar timer Convierte 15s -> 15000ms
         }
     }
 

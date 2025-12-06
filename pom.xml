@@ -11,9 +11,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>        
-        <maven.compiler.source>25</maven.compiler.source> 
-        <maven.compiler.target>25</maven.compiler.target>        
         <exec.mainClass>berlangadiaz.vidforge.downloader.view.MainFrame</exec.mainClass>
+        <maven.compiler.release>25</maven.compiler.release>
     </properties>    
     <dependencies>
         <dependency>
@@ -33,7 +32,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>3.13.0</version>
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
@@ -56,7 +55,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.3.0</version>
+                <version>3.4.1</version>
                 <configuration>
                     <archive>
                         <manifest>
