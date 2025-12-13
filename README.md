@@ -113,3 +113,21 @@ Esta fase se centró en la creación de un componente visual independiente (**Ja
 * **Requisitos:** JDK 25, Maven (configurado en el PATH).
 * **Construcción:** Clic derecho en el proyecto -> **Clean and Build**.
 * **Próximos Pasos:** El proyecto está listo para la implementación de la **Parte 2: Creación del Componente JavaBean de Polling** y la **Parte 3: Integración**.
+
+# VidForge Downloader (Entrega Final)
+
+Este proyecto depende del componente externo `DiMediaNetComponent`.
+
+## ⚠️ Instrucciones de Compilación (IMPORTANTE)
+
+Para ejecutar este proyecto, debe seguir este orden estricto para que Maven encuentre las dependencias:
+
+1.  Clone y abra el proyecto **DiMediaNetComponent**.
+2.  Ejecute **Clean and Build** (o `mvn install`) para instalar el .jar en su repositorio local.
+3.  Clone y abra este proyecto (**VidForge-Downloader**).
+4.  Ejecute **Clean and Build**.
+5.  Ejecute la aplicación (**Run**).
+
+## Notas
+- Se ha eliminado la clase `ApiClient` local para usar la del componente.
+- La URL de la API ha sido actualizada a `difreenet9` (servidor nuevo).
