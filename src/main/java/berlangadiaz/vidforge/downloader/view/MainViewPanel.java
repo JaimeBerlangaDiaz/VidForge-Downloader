@@ -4,11 +4,12 @@
  */
 package berlangadiaz.vidforge.downloader.view;
 
-import berlangadiaz.vidforge.downloader.components.MediaPollerComponent;
-import berlangadiaz.vidforge.downloader.events.NewMediaEvent;
-import berlangadiaz.vidforge.downloader.events.NewMediaListener;
 import berlangadiaz.vidforge.downloader.model.DownloadWorker;
 import berlangadiaz.vidforge.downloader.model.GestorJson;
+import berlangadiaz.vidforge.downloader.model.MediaFile;
+import com.berlangadiaz.dimedianet.api.ApiClient;
+import com.berlangadiaz.dimedianet.events.NewMediaEvent;
+import com.berlangadiaz.dimedianet.events.NewMediaListener;
 import javax.swing.SwingUtilities;
 import java.util.List;
 import java.util.ArrayList;
@@ -26,10 +27,7 @@ import javax.swing.JOptionPane;
  * @author Jaime Berlanga Diaz
  */
 public class MainViewPanel extends javax.swing.JPanel {
-    
-    //Declaración del componente Poller.
-    private MediaPollerComponent poller;
-    
+
     private String ultimoArchivoDescargado = "";
     
     // (Esta variable la necesitaremos para el 'parentFrame' de PreferenciasPanel, 
@@ -77,27 +75,20 @@ public class MainViewPanel extends javax.swing.JPanel {
         );
         txtUrl.getInputMap().put(commandV, "paste");
         
-        //INTEGRACIÓN DEL POLLER
+        //INTEGRACIÓN DE DIMEDIALINK1
         
-        // Instanciamos el componente
-        poller = new MediaPollerComponent();
+        // 1. Configuración de URL y tiempo
+        diMediaLink1.setApiUrl(parentFrame.getApiUrl());
+        diMediaLink1.setPollingInterval(15);
         
-        // Configuración
-        // Ponemos aquí la URL base de la API
-        poller.setApiUrl(parentFrame.getApiUrl());
-        
-        // Comprobamos cada 15 segundos en el componente le indicamos que
-        // el PollingInterval que pongamos lo multiplique por 1000 para convertirlo a ms.
-        poller.setPollingInterval(15); 
-        
-        // Escuchamos los eventos (Cuando encuentra archivos nuevos)
-        poller.addNewMediaListener(new NewMediaListener() {
+        // 2. Escuchamos los eventos (Cuando encuentra archivos nuevos)
+        diMediaLink1.addNewMediaListener(new NewMediaListener() {
             @Override
             public void onNewMediaFound(NewMediaEvent evt) {
                 SwingUtilities.invokeLater(() -> {
                     String msg = "¡Nuevos archivos detectados en el servidor!\n" + 
                                  "Cantidad: " + evt.getNewMediaList().size() + "\n" +
-                                 "Hora: " + evt.getDetectionTime();
+                                 "Hora: " + evt.getDiscoveryTime(); // CORREGIDO: getDiscoveryTime()
                     
                     int opcion = JOptionPane.showConfirmDialog(MainViewPanel.this, 
                             msg + "\n¿Quieres recargar la lista ahora?", 
@@ -119,44 +110,43 @@ public class MainViewPanel extends javax.swing.JPanel {
                 });
             }
         });
-
-        // Lo Añadimos visualmente a la ventana.
-        // Por ahora lo añadimos al propio panel.(Posiblemente tengamos que ajustarlo)
-        poller.setPreferredSize(new Dimension(200, 30));
-        // Ajustamos la posición manualmente ya que usamos Layout Null
-        // Lo ponemos arriba a la derecha o donde quepa.
-        this.add(poller);
-        poller.setBounds(220,0,200,30); //Ajustaremos si tapa algo
-        
-        // Forzar repintado para que aparezca
-        this.revalidate();
-        this.repaint();
     }
     
-    // --- MÉTODOS PARA CONTROLAR EL POLLER DESDE EL MAIN FRAME ---
-
+    // --- MÉTODOS PARA CONTROLAR EL COMPONENTE DESDE EL MAIN FRAME ---
     /**
-     * Se llama cuando el Login es exitoso.
-     * Le da el token al poller y lo enciende.
+     * Se llama cuando el Login es exitoso.Le da el token al componente y lo enciende.
+     * @param token
      */
+    
     public void iniciarPoller(String token) {
-        if (poller != null) {
-            poller.setToken(token);
-            poller.setRunning(true);
+        // CORREGIDO: Usamos diMediaLink1
+        if (diMediaLink1 != null) {
+            diMediaLink1.setToken(token);
+            diMediaLink1.setRunning(true);
             System.out.println("MainViewPanel: Poller iniciado.");
         }
+    }
+    
+    // Alias para compatibilidad con MainFrame (a veces lo llamamos activarPolling)
+    public void activarPolling(String token) {
+        iniciarPoller(token);
     }
 
     /**
      * Se llama al cerrar sesión o salir.
      */
     public void detenerPoller() {
-        if (poller != null) {
-            poller.setRunning(false);
+        // CORREGIDO: Usamos diMediaLink1
+        if (diMediaLink1 != null) {
+            diMediaLink1.setRunning(false);
             System.out.println("MainViewPanel: Poller detenido.");
         }
     }
     
+    // Método getter para el ApiClient
+    public ApiClient getApiClient() {
+        return diMediaLink1.getApiClient(); 
+    } 
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -188,6 +178,7 @@ public class MainViewPanel extends javax.swing.JPanel {
         rbAudioNormal = new javax.swing.JRadioButton();
         jLabel4 = new javax.swing.JLabel();
         cmbFormato = new javax.swing.JComboBox<>();
+        diMediaLink1 = new com.berlangadiaz.dimedianet.component.DiMediaLink();
 
         jCheckBoxMenuItem1.setSelected(true);
         jCheckBoxMenuItem1.setText("jCheckBoxMenuItem1");
@@ -206,7 +197,7 @@ public class MainViewPanel extends javax.swing.JPanel {
 
         txtUrl.setToolTipText("Pega Aquí la URL del Vídeo");
         add(txtUrl);
-        txtUrl.setBounds(100, 30, 440, 23);
+        txtUrl.setBounds(100, 30, 440, 22);
 
         chkSoloAudio.setText("Descargar solo audio (mp3)");
         chkSoloAudio.addActionListener(new java.awt.event.ActionListener() {
@@ -215,7 +206,7 @@ public class MainViewPanel extends javax.swing.JPanel {
             }
         });
         add(chkSoloAudio);
-        chkSoloAudio.setBounds(20, 70, 190, 21);
+        chkSoloAudio.setBounds(20, 70, 190, 20);
 
         buttonGroup1.add(rbVideo1080);
         rbVideo1080.setText("1080p");
@@ -247,7 +238,7 @@ public class MainViewPanel extends javax.swing.JPanel {
         jScrollPane1.setViewportView(txtLog);
 
         add(jScrollPane1);
-        jScrollPane1.setBounds(10, 300, 480, 130);
+        jScrollPane1.setBounds(10, 300, 590, 130);
 
         btnAbrirVideo.setText("Reproducir último archivo descargado");
         btnAbrirVideo.addActionListener(new java.awt.event.ActionListener() {
@@ -260,7 +251,7 @@ public class MainViewPanel extends javax.swing.JPanel {
 
         progressBar.setStringPainted(true);
         add(progressBar);
-        progressBar.setBounds(110, 280, 380, 20);
+        progressBar.setBounds(110, 280, 490, 20);
 
         jLabel2.setText("Calidad de Video:");
         add(jLabel2);
@@ -278,7 +269,7 @@ public class MainViewPanel extends javax.swing.JPanel {
 
         jLabel3.setText("Calidad de Audio (solo si es mp3):");
         add(jLabel3);
-        jLabel3.setBounds(20, 100, 210, 17);
+        jLabel3.setBounds(20, 100, 210, 16);
 
         buttonGroup2.add(rbAudioBuena);
         rbAudioBuena.setSelected(true);
@@ -297,7 +288,9 @@ public class MainViewPanel extends javax.swing.JPanel {
 
         cmbFormato.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "mp4", "mkv", "webm", "mp3" }));
         add(cmbFormato);
-        cmbFormato.setBounds(160, 170, 72, 23);
+        cmbFormato.setBounds(160, 170, 72, 22);
+        add(diMediaLink1);
+        diMediaLink1.setBounds(300, 430, 300, 20);
     }// </editor-fold>//GEN-END:initComponents
 
     private void chkSoloAudioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkSoloAudioActionPerformed
@@ -475,39 +468,52 @@ public class MainViewPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_btnAbrirVideoActionPerformed
     
     //MÉTODOS PÚBLICOS PARA EL WORKER
-    // MÉTODO AÑADIDO: GESTIONA EL ARCHIVO FINAL Y EL REFRESCO DE LA BIBLIOTECA️
     /**
      * Llamado por el DownloadWorker al finalizar con éxito la descarga. Guarda
      * la entrada en el log.json y notifica al panel de la Biblioteca que
      * recargue.
      *
      * @param rutaFinalArchivo La ruta absoluta del archivo descargado.
+     * Crea el objeto MediaFile, lo guarda en el historial y actualiza la interfaz.
      */
     public void notificarDescargaCompleta(String rutaFinalArchivo) throws IOException {
+        
+        // 1. Convertir la ruta (String) en un archivo real (File)
+        File archivoEnDisco = new File(rutaFinalArchivo);
 
-        // 1. Crear el objeto MediaFile (asumiendo que tienes un constructor adecuado)
-        // NOTA: Esto es conceptual. Necesitas la clase MediaFile para esto.
-        // MediaFile nuevoArchivo = new MediaFile(rutaFinalArchivo, ...); 
-        // 2. Guardar la entrada en el historial local (log.json)
-        String rutaCarpetaGuardado = parentFrame.getRutaGuardado();
-        GestorJson gestor = new GestorJson(rutaCarpetaGuardado);
+        // Verificamos que exista para evitar errores
+        if (archivoEnDisco.exists()) {
+            
+            // Crear el objeto MediaFile
+            // El constructor de MediaFile analiza el archivo para sacar tamaño, fecha, etc.
+            MediaFile nuevoArchivo = new MediaFile(archivoEnDisco);
+            
+            // 3. Obtener la ruta de guardado ACTUAL del MainFrame
+            // (Para asegurarnos de que guardamos el log.json en la carpeta correcta)
+            String rutaCarpetaGuardado = parentFrame.getRutaGuardado();
+            
+            // 4. Inicializar el Gestor en esa carpeta y GUARDAR
+            GestorJson gestor = new GestorJson(rutaCarpetaGuardado);
+            gestor.anadirArchivo(nuevoArchivo);
 
-        // ⬇️ ESTA LÍNEA DEBE ESTAR IMPLEMENTADA EN TU PROYECTO ⬇️
-        // gestor.anadirArchivo(nuevoArchivo); 
-        // 3. Establecer la ruta para el botón "Reproducir"
-        setUltimoArchivoDescargado(rutaFinalArchivo);
+            // 5. Actualizar la UI de este panel (para que el botón reproducir funcione)
+            setUltimoArchivoDescargado(rutaFinalArchivo);
+            btnAbrirVideo.setEnabled(true); 
 
-        // 4. FORZAR LA ACTUALIZACIÓN DE LA TABLA DE LA BIBLIOTECA
-        BibliotecaPanel bibliotecaPanel = parentFrame.getPanelBiblioteca();
-        if (bibliotecaPanel != null) {
-            // Llama al método que ya existe en BibliotecaPanel y que se encarga de recargar, filtrar y ordenar
-            bibliotecaPanel.aplicarFiltrosYOrden();
+            // 6. FORZAR LA ACTUALIZACIÓN DE LA BIBLIOTECA
+            // Esto hace que el archivo aparezca en la otra pestaña inmediatamente
+            BibliotecaPanel bibliotecaPanel = parentFrame.getPanelBiblioteca();
+            if (bibliotecaPanel != null) {
+                bibliotecaPanel.aplicarFiltrosYOrden();
+            }
+
+            // 7. Informar al usuario
+            javax.swing.JOptionPane.showMessageDialog(this,
+                    "Descarga finalizada y registrada en la biblioteca.",
+                    "Éxito", javax.swing.JOptionPane.INFORMATION_MESSAGE);      
+        } else {
+            System.err.println("Error: El archivo descargado no aparece en el disco: " + rutaFinalArchivo);
         }
-
-        // Informar al usuario
-        javax.swing.JOptionPane.showMessageDialog(this,
-                "Descarga finalizada con éxito y registrada.",
-                "Descarga Completa", javax.swing.JOptionPane.INFORMATION_MESSAGE);
     }
 
     /**
@@ -538,6 +544,7 @@ public class MainViewPanel extends javax.swing.JPanel {
     private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.JCheckBox chkSoloAudio;
     private javax.swing.JComboBox<String> cmbFormato;
+    private com.berlangadiaz.dimedianet.component.DiMediaLink diMediaLink1;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem1;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem2;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem3;

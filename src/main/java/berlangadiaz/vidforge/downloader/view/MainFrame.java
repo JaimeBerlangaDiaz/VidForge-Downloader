@@ -1,13 +1,13 @@
 package berlangadiaz.vidforge.downloader.view;
 
-import berlangadiaz.vidforge.downloader.view.AboutDialog;
-import berlangadiaz.vidforge.downloader.view.MainViewPanel;
-import berlangadiaz.vidforge.downloader.view.PreferenciasPanel;
-import berlangadiaz.vidforge.downloader.view.BibliotecaPanel;
 import berlangadiaz.vidforge.downloader.model.GestorJson;
-import berlangadiaz.vidforge.downloader.model.GestorJson.Configuracion;
-import berlangadiaz.vidforge.downloader.api.ApiClient; 
-import berlangadiaz.vidforge.downloader.api.Usuari;
+import com.berlangadiaz.dimedianet.api.Media;
+import com.berlangadiaz.dimedianet.api.Usuari;
+import com.berlangadiaz.dimedianet.api.ApiClient;
+import com.berlangadiaz.dimedianet.component.DiMediaLink;
+import com.berlangadiaz.dimedianet.api.ApiClient;
+import com.berlangadiaz.dimedianet.api.Usuari;
+import java.io.File;
 import java.io.IOException;
 import javax.swing.JOptionPane;
 
@@ -28,7 +28,7 @@ public class MainFrame extends javax.swing.JFrame {
     // --- VARIABLES DE PREFERENCIAS Y ESTADO ---
     // Valores por defecto al iniciar o si el archivo config.json no existe.
     private String rutaYtDlp = getDefaultYtDlpPath();
-    private String rutaGuardado = System.getProperty("user.home") + "/Downloads"; 
+    private String rutaGuardado = System.getProperty("user.home") + File.separator +"Downloads"; 
     private boolean crearM3u = false;
     private String limiteVelocidad = "";
     
@@ -37,7 +37,7 @@ public class MainFrame extends javax.swing.JFrame {
     private boolean ordenAscendente = true; 
 
     // --- VARIABLES PARA EL LOGIN ---
-    private ApiClient apiClient; // Instancia del cliente
+    // private ApiClient apiClient; // Instancia del cliente antigua
     private String currentJwtToken = null; // Token de la sesión activa
     private Usuari currentUser = null; // Objeto del usuario logueado
     private static final String API_BASE_URL = "https://dimedianetapi9.azurewebsites.net"; // URL Base de la API
@@ -47,27 +47,35 @@ public class MainFrame extends javax.swing.JFrame {
      * Carga las preferencias guardadas, inicializa el cliente API y gestiona el flujo de Auto-Login.
      */
     public MainFrame() {        
-        // Carga de preferencias de persistencia (yt-dlp).
-        this.rutaGuardado = System.getProperty("user.home") + "/Download";
-        GestorJson gestor = new GestorJson(System.getProperty("user.home"));
-        GestorJson.Configuracion config = gestor.leerConfiguracion();
+        // Definimos la ruta por defecto (Donde buscamos si no sabemos nada)
+        String rutaUsuario = System.getProperty("user.home");
+        // Usamos File.separator para que funcione bien en Windows y Mac
+        this.rutaGuardado = rutaUsuario + File.separator + "Downloads";
         
-        // Sobreescribir las variables con los valores guardados, o usar defaults si no existe el archivo.
-        if (config != null){
-            //Cargar los valores del JSON
+        GestorJson gestorUsuario = new GestorJson(rutaUsuario);
+        GestorJson.Configuracion config = gestorUsuario.leerConfiguracion();
+        
+        // 2. ¿Encontramos el mapa del tesoro?
+        if (config != null) {
+            // Cargamos valores básicos
             this.rutaYtDlp = config.rutaYtDlp;
-            this.rutaGuardado = config.rutaGuardado;
             this.crearM3u = config.crearM3u;
             this.limiteVelocidad = config.limiteVelocidad;
+            
+            // LA CLAVE: ¿La ruta guardada es distinta a la del usuario?
+            if (config.rutaGuardado != null && !config.rutaGuardado.isEmpty()) {
+                // ¡SÍ! Actualizamos la ruta de trabajo a la carpeta personalizada (ej: D:\Pelis)
+                this.rutaGuardado = config.rutaGuardado;
+                System.out.println("Redireccionando trabajo a: " + this.rutaGuardado);
+            }
         } else {
-            //Si el archivo no existe (primera vez), usamos los valores por defecto del sistema
+            // Primera vez: valores por defecto
             this.rutaYtDlp = getDefaultYtDlpPath();
-            //this.rutaGuardado ya está inicializada arriba
             this.crearM3u = false;
             this.limiteVelocidad = "";
         }
-        // Inicialización de ApiClients yh GUI.
-        this.apiClient = new ApiClient(API_BASE_URL);
+        // Inicialización de ApiClients y GUI. (ANTIGUA)
+        // this.apiClient = new ApiClient(API_BASE_URL); 
         
         initComponents();
         setLocationRelativeTo(null);
@@ -326,12 +334,14 @@ public class MainFrame extends javax.swing.JFrame {
      * @throws Exception Si falla la autenticación o la conexión.
      */
     public Usuari attemptLogin(String email, String password) throws Exception {
-
-        String token = apiClient.login(email, password);
-
+        //Antes
+        // String token = apiClient.login(email, password);
+        // AHORA: Pedimos el cliente al panel principal
+        ApiClient client = mainViewPanel.getApiClient(); // <--- NUEVO
+        String token = client.login(email, password);
+        
         if (token != null && !token.isBlank()) {
-            Usuari user = apiClient.getMe(token);
-
+            Usuari user = client.getMe(token); //Usamos 'client' local
             if (user != null) {
                 // Actualizar el estado del MainFrame con la nueva sesión
                 this.currentJwtToken = token;
@@ -352,7 +362,13 @@ public class MainFrame extends javax.swing.JFrame {
      * @throws Exception Si el token no es válido o ha expirado en el servidor.
      */
     public Usuari resumeSession(String token) throws Exception {
-        Usuari user = apiClient.getMe(token);
+        // Antes 
+        // Usuari user = apiClient.getMe(token);
+        
+        // AHORA: Pedimos el cliente al panel principal
+        ApiClient client = mainViewPanel.getApiClient(); // <--- NUEVO
+        Usuari user = client.getMe(token);
+        
         if (user != null) {
             // Si el token es válido, actualizamos el estado
             this.currentJwtToken = token;
@@ -456,8 +472,14 @@ public class MainFrame extends javax.swing.JFrame {
         //poner el config.json.
         try {
             // Guardar en el archivo JSON
-            GestorJson gestor = new GestorJson(System.getProperty("user.home"));
-            gestor.guardarConfiguracion(ytDlp, guardado, m3u, limite);
+            GestorJson gestorReal = new GestorJson(guardado);
+            gestorReal.guardarConfiguracion(ytDlp, guardado, m3u, limite);
+            // Guardamos el "redireccionado" del json para recordar al reiniciar 
+            // Esto sirve para que al abrir la app sepa ir al paso 1.
+            if (!guardado.equals(System.getProperty("user.home"))){
+                GestorJson gestorPointer = new GestorJson(System.getProperty("user.home"));
+                gestorPointer.guardarConfiguracion(ytDlp, guardado, m3u, limite);
+            }
         } catch (IOException e) { // Usamos Exception para simplificar y capturar cualquier error de guardado
             JOptionPane.showMessageDialog(this,
                     "Error al guardar las preferencias. El archivo config.json no se pudo escribir: " + e.getMessage(),

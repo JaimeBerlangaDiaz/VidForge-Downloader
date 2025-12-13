@@ -1,8 +1,11 @@
 package berlangadiaz.vidforge.downloader.view;
 
-import berlangadiaz.vidforge.downloader.api.ApiClient;
-import berlangadiaz.vidforge.downloader.api.Usuari;
+import com.berlangadiaz.dimedianet.api.Media;
+import com.berlangadiaz.dimedianet.api.Usuari;
+import com.berlangadiaz.dimedianet.api.ApiClient;
+import com.berlangadiaz.dimedianet.component.DiMediaLink;
 import berlangadiaz.vidforge.downloader.model.GestorJson;
+import com.berlangadiaz.dimedianet.api.Usuari;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

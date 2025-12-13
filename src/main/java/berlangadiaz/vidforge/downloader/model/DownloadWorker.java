@@ -59,9 +59,11 @@ public class DownloadWorker extends SwingWorker<String, String> {
         System.out.println("Ejecutando comando: " + String.join(" ", command));
         ProcessBuilder pb = new ProcessBuilder(this.command);
         pb.redirectErrorStream(true);
-
+        
+        //Variable del proceso para poder cerrarlo bien
+        Process process = null;
         try {
-            Process process = pb.start();
+            process = pb.start();
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(process.getInputStream(),"UTF-8"))) {
                 String line;
@@ -77,6 +79,14 @@ public class DownloadWorker extends SwingWorker<String, String> {
             }
         } catch (IOException | InterruptedException e) {
             return "ERROR CRÍTICO: " + e.getMessage();
+        } finally {
+            //Cerramos streams para evitar bloqueos en la siguiente descarga
+            if (process != null){
+            try { process.getInputStream().close(); } catch (IOException ignored) {}
+            try { process.getErrorStream().close(); } catch (IOException ignored) {}
+            try { process.getOutputStream().close(); } catch (IOException ignored) {}
+            process.destroy();
+            }
         }
     }
 

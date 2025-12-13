@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.io.FileWriter;
 import java.io.FileReader;
 import java.io.Reader;
 import tools.jackson.core.type.TypeReference;
@@ -22,8 +21,7 @@ public class GestorJson {
 
     // --- PERSISTENCIA DEL TOKEN JWT (Función "Recordarme") ---
     // Objeto estático para acceder al sistema de preferencias de Java.
-    private static final Preferences prefs
-            = Preferences.userNodeForPackage(GestorJson.class);
+    private static final Preferences prefs = Preferences.userNodeForPackage(GestorJson.class);
     private static final String PREF_TOKEN = "jwt_token";
     private static final String PREF_EXPIRATION = "token_expiration_ms";
 
@@ -32,7 +30,7 @@ public class GestorJson {
     private final String CONFIG_FILE_NAME = "config.json";
     private final String LOG_FILE_NAME = "log.json";
 
-    // Usamos Jackson para manejar el JSON, ya que es la dependencia solicitada.
+    // Usamos Jackson para manejar el JSON.
     private final ObjectMapper mapper = new ObjectMapper();
 
     // Clase interna para la configuración (Asumiendo que existe)
@@ -227,4 +225,6 @@ public class GestorJson {
             return null;
         }
     }
+    
+    
 }
