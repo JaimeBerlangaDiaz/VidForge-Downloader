@@ -40,7 +40,7 @@ public class MainFrame extends javax.swing.JFrame {
     // private ApiClient apiClient; // Instancia del cliente antigua
     private String currentJwtToken = null; // Token de la sesión activa
     private Usuari currentUser = null; // Objeto del usuario logueado
-    private static final String API_BASE_URL = "https://dimedianetapi9.azurewebsites.net"; // URL Base de la API
+    private static final String API_BASE_URL = "https://difreenet9.azurewebsites.net"; // URL Base de la API
  
     /**
      * Constructor principal del MainFrame.
