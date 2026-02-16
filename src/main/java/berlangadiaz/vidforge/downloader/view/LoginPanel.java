@@ -71,6 +71,9 @@ public class LoginPanel extends JPanel implements ActionListener {
         // --- Añadir Listener y manejar persistencia ---
         loginButton.addActionListener(this);
         
+        // Al pulsar la tecla Enter en el campo password se dispara el botón de login
+        passwordField.addActionListener(e -> loginButton.doClick());
+        
         // Al inicio, intenta cargar credenciales si existen
         loadRememberedUser(); 
     }
@@ -180,7 +183,7 @@ public class LoginPanel extends JPanel implements ActionListener {
 
             } catch (Exception ex) {
                 // Captura errores de red, 401 Unauthorized, etc.
-                errorMessage = "Error de Autenticación: " + ex.getMessage();
+                errorMessage = "No se pudo iniciar sesión.\nVerifica tu email y contraseña o tu conexión a internet.";
             }
 
             // 4. Manejo de errores (Volver al EDT)
@@ -191,6 +194,10 @@ public class LoginPanel extends JPanel implements ActionListener {
                             finalErrorMessage,
                             "Error de Autenticación",
                             JOptionPane.ERROR_MESSAGE);
+
+                    // UX: Limpiar password y habilitar botón para reintento
+                    passwordField.setText("");
+                    passwordField.requestFocus(); // Pone el foco para volver a escribir
                     loginButton.setEnabled(true);
                 });
             }

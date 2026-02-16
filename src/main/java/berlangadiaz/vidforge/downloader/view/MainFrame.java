@@ -74,7 +74,7 @@ public class MainFrame extends javax.swing.JFrame {
             this.crearM3u = false;
             this.limiteVelocidad = "";
         }
-        // Inicialización de ApiClients y GUI. (ANTIGUA)
+        // Inicialización de ApiClients y GUI.
         // this.apiClient = new ApiClient(API_BASE_URL); 
         
         initComponents();
@@ -129,6 +129,7 @@ public class MainFrame extends javax.swing.JFrame {
         jMenuBar3 = new javax.swing.JMenuBar();
         jMenu5 = new javax.swing.JMenu();
         jMenu6 = new javax.swing.JMenu();
+        diMediaNetPoller = new com.berlangadiaz.dimedianet.component.DiMediaLink();
         panelContenedor = new javax.swing.JPanel();
         jMenuBar1 = new javax.swing.JMenuBar();
         menuArchivo = new javax.swing.JMenu();
@@ -158,11 +159,17 @@ public class MainFrame extends javax.swing.JFrame {
         setTitle("VidForge Downloader");
         setPreferredSize(new java.awt.Dimension(800, 600));
         setResizable(false);
-        getContentPane().setLayout(null);
+
+        diMediaNetPoller.setPreferredSize(new java.awt.Dimension(800, 30));
+        diMediaNetPoller.addNewMediaListener(new com.berlangadiaz.dimedianet.events.NewMediaListener() {
+            public void onNewMediaFound(com.berlangadiaz.dimedianet.events.NewMediaEvent evt) {
+                diMediaNetPollerOnNewMediaFound(evt);
+            }
+        });
+        getContentPane().add(diMediaNetPoller, java.awt.BorderLayout.SOUTH);
 
         panelContenedor.setLayout(new java.awt.BorderLayout());
-        getContentPane().add(panelContenedor);
-        panelContenedor.setBounds(0, 0, 630, 550);
+        getContentPane().add(panelContenedor, java.awt.BorderLayout.CENTER);
 
         jMenuBar1.setPreferredSize(new java.awt.Dimension(128, 30));
 
@@ -275,21 +282,49 @@ public class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_itemMostrarDescargaActionPerformed
 
     private void itemLogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemLogoutActionPerformed
-        // Limpiar la persistencia
-        GestorJson.clearToken(); 
-        
-        // Limpiar el estado interno del MainFrame
+        // 1. Detener el componente (Poller)
+        diMediaNetPoller.setRunning(false);
+        diMediaNetPoller.setToken(null);
+
+        // 2. Limpiar la persistencia
+        GestorJson.clearToken();
+
         this.currentJwtToken = null;
         this.currentUser = null;
-        
-        // Volver al login
+
         mostrarVistaLogin();
-        
-        JOptionPane.showMessageDialog(this, 
-            "Sesión cerrada con éxito.", 
-            "Logout", JOptionPane.INFORMATION_MESSAGE);
+
+        JOptionPane.showMessageDialog(this,
+                "Sesión cerrada con éxito.",
+                "Logout", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_itemLogoutActionPerformed
-    
+
+    private void diMediaNetPollerOnNewMediaFound(com.berlangadiaz.dimedianet.events.NewMediaEvent evt) {//GEN-FIRST:event_diMediaNetPollerOnNewMediaFound
+        // 1. Extraemos la información del evento
+        int nuevos = evt.getNewMediaList().size();
+        String hora = evt.getDiscoveryTime(); // String que configuramos en el componente
+
+        // 2. Creamos el mensaje
+        String mensaje = "¡Sincronización completada!\n"
+                + "Se han detectado " + nuevos + " archivos nuevos en la red.\n"
+                + "Hora del hallazgo: " + hora;
+
+        // 3. Mostramos el diálogo emergente
+        javax.swing.JOptionPane.showMessageDialog(this,
+                mensaje,
+                "Novedades en Di Media Net",
+                javax.swing.JOptionPane.INFORMATION_MESSAGE);
+
+        // 4. (Opcional) Forzar refresco de la biblioteca local para ver cambios al momento
+        try {
+            if (panelBiblioteca != null) {
+                panelBiblioteca.aplicarFiltrosYOrden();
+            }
+        } catch (java.io.IOException ex) {
+            System.err.println("Error al refrescar biblioteca tras hallazgo: " + ex.getMessage());
+        }
+    }//GEN-LAST:event_diMediaNetPollerOnNewMediaFound
+
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -297,24 +332,12 @@ public class MainFrame extends javax.swing.JFrame {
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
          */
         try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            javax.swing.UIManager.setLookAndFeel(new com.formdev.flatlaf.FlatDarkLaf());
+        } catch (Exception ex) {
+            System.err.println("No se pudo cargar FlatLaf. Se usará el diseño por defecto.");
         }
-        //</editor-fold>
 
-        /* Create and display the form */
+        /* Crear y mostrar la ventana */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new MainFrame().setVisible(true);
@@ -323,7 +346,6 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     // --- MÉTODOS DE SERVICIO (API Y LOGIN) ---
-
     /**
      * Implementa el proceso de Login completo: autenticación (login) y obtención 
      * de los datos del usuario (getMe).
@@ -334,43 +356,37 @@ public class MainFrame extends javax.swing.JFrame {
      * @throws Exception Si falla la autenticación o la conexión.
      */
     public Usuari attemptLogin(String email, String password) throws Exception {
-        //Antes
-        // String token = apiClient.login(email, password);
-        // AHORA: Pedimos el cliente al panel principal
-        ApiClient client = mainViewPanel.getApiClient(); // <--- NUEVO
-        String token = client.login(email, password);
-        
+        // CAMBIO AQUÍ: Usamos el wrapper del componente en lugar de pedir el cliente al panel
+        // Antes: ApiClient client = mainViewPanel.getApiClient();
+
+        String token = diMediaNetPoller.login(email, password); // <--- NUEVO (Usamos el Wrapper)
+
         if (token != null && !token.isBlank()) {
-            Usuari user = client.getMe(token); //Usamos 'client' local
+            // CAMBIO AQUÍ: También usamos el wrapper para obtener los datos del usuario
+            Usuari user = diMediaNetPoller.getMe(token);
+
             if (user != null) {
-                // Actualizar el estado del MainFrame con la nueva sesión
                 this.currentJwtToken = token;
                 this.currentUser = user;
                 return user;
             }
         }
-        // Si falla el login o getMe.
-        throw new IOException("Fallo de autenticación o datos de usuario no disponibles.");
+        throw new IOException("Fallo de autenticación o datos de usuario incorrectos.");
     }
 
     /**
-     * Reanuda una sesión previamente guardada utilizando un token JWT persistente.
-     * Valida el token llamando al endpoint /getMe de la API.
+     * Reanuda una sesión previamente guardada utilizando un token JWT
+     * persistente. Valida el token llamando al endpoint /getMe de la API.
      *
      * @param token El token JWT a validar.
      * @return El objeto {@code Usuari} si el token es válido.
      * @throws Exception Si el token no es válido o ha expirado en el servidor.
      */
     public Usuari resumeSession(String token) throws Exception {
-        // Antes 
-        // Usuari user = apiClient.getMe(token);
-        
-        // AHORA: Pedimos el cliente al panel principal
-        ApiClient client = mainViewPanel.getApiClient(); // <--- NUEVO
-        Usuari user = client.getMe(token);
-        
+        // CAMBIO AQUÍ: Usamos el componente directamente
+        Usuari user = diMediaNetPoller.getMe(token);
+
         if (user != null) {
-            // Si el token es válido, actualizamos el estado
             this.currentJwtToken = token;
             this.currentUser = user;
             return user;
@@ -421,25 +437,38 @@ public class MainFrame extends javax.swing.JFrame {
 
     // Método para mostrar el panel principal (MainViewPanel).
     public void mostrarVistaPrincipal() {
+        // 1. Limpiamos solo el contenedor de las vistas (Login/Principal/Biblioteca)
         panelContenedor.removeAll();
+
+        // 2. Añadimos la vista principal al centro
         panelContenedor.add(mainViewPanel, java.awt.BorderLayout.CENTER);
-        panelContenedor.revalidate();
-        panelContenedor.repaint();
-        
-        //Arrancamos el Poller(Parte 2 de la tarea)
-        //Le pasamos el token actual al panel para que empiece a buscar archivos.
-        if (this.currentJwtToken != null && !this.currentJwtToken.isEmpty()){
-            mainViewPanel.iniciarPoller(this.currentJwtToken);
-        } else {
-            System.err.println("Advertencia!!: Se intentó iniciar el Poller sin token.");
+
+        // 3. Activamos el motor de búsqueda si tenemos el token
+        if (this.currentJwtToken != null && !this.currentJwtToken.isEmpty()) {
+            // Configuramos y encendemos
+            diMediaNetPoller.setToken(this.currentJwtToken);
+            diMediaNetPoller.setRunning(true);
+
+            // Nos aseguramos de que el componente sea visible
+            diMediaNetPoller.setVisible(true);
+
+            // Forzamos el refresco para que se pinte en VERDE inmediatamente
+            diMediaNetPoller.revalidate();
+            diMediaNetPoller.repaint();
+
+            System.out.println("DEBUG: Poller activado y visible.");
         }
 
-        // Mostrar los menús al estar logueado
+        // 4. Refrescamos el contenedor de vistas
+        panelContenedor.revalidate();
+        panelContenedor.repaint();
+
+        // Mostrar los menús
         if (jMenuBar1 != null) {
             jMenuBar1.setVisible(true);
         }
     }
-    
+
     /**
      * Devuelve la instancia del panel de la biblioteca.
      * Es esencial para que otras vistas (como MainViewPanel o el DownloadWorker)
@@ -545,8 +574,21 @@ public class MainFrame extends javax.swing.JFrame {
     public String getApiUrl() {
         return API_BASE_URL;
     }
-   
+
+    /**
+     * Método público para compartir el cliente API con los paneles hijos. Esto
+     * permite a DownloadWorker usar la conexión del MainFrame.
+     * @return 
+     */
+    public ApiClient getApiClient() {
+        if (diMediaNetPoller != null) {
+            return diMediaNetPoller.getApiClient();
+        }
+        return null;
+    }
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private com.berlangadiaz.dimedianet.component.DiMediaLink diMediaNetPoller;
     private javax.swing.JMenuItem itemAcerdaDe;
     private javax.swing.JMenuItem itemLogout;
     private javax.swing.JMenuItem itemMostrarBiblioteca;

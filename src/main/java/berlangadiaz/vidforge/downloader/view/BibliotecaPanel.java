@@ -3,7 +3,14 @@
  */
 package berlangadiaz.vidforge.downloader.view;
 
-// --- Imports necesarios para la lógica ---
+import com.berlangadiaz.dimedianet.api.Media; // El objeto de la API
+import java.util.Map;
+import java.util.HashMap;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.JLabel;
+import javax.swing.ImageIcon;
+import java.awt.Component;
+import javax.swing.JTable;
 import berlangadiaz.vidforge.downloader.model.MediaFileTableModel;
 import java.io.File;
 import java.util.ArrayList;
@@ -12,7 +19,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.BorderFactory;
-// --- Imports de nuestras clases ---
 import berlangadiaz.vidforge.downloader.model.GestorJson;
 import berlangadiaz.vidforge.downloader.model.MediaFile;
 import berlangadiaz.vidforge.downloader.model.ColumnaOrden;
@@ -36,26 +42,60 @@ public class BibliotecaPanel extends javax.swing.JPanel {
      * Creates new form BibliotecaPanel
      */
     public BibliotecaPanel(MainFrame parent) {
-        // 1. Carga el diseño
+        // 1. PRIMERO: Crear los componentes visuales (incluida la tabla)
         initComponents(); 
         
-        // 2. Guarda la referencia al "cerebro"
+        // 2. Guardar referencia al padre (MainFrame)
         this.parentFrame = parent; 
         
-        // --- Conectar los "Motores" ---
-            
-        // 3. Conecta el "motor" (TableModel) a la JTable
+        // 3. Crear y asignar el Modelo a la Tabla
+        // IMPORTANTE: Esto define que la tabla tiene 5 columnas (la 0 es para el icono).
         tableModel = new MediaFileTableModel();
         tablaArchivos.setModel(tableModel);
         
-        // 4. Configura el JComboBox<ColumnaOrden> (un <object>)
+        // 4. --- CONFIGURACIÓN VISUAL (ICONOS) ---
+        // Ajustamos ancho columna 0 (Iconos) para que sea pequeña
+        tablaArchivos.getColumnModel().getColumn(0).setMaxWidth(40);
+        tablaArchivos.getColumnModel().getColumn(0).setMinWidth(40);
+        
+        // Asignamos el "Pintor" de iconos
+        tablaArchivos.getColumnModel().getColumn(0).setCellRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                JLabel label = (JLabel) super.getTableCellRendererComponent(table, "", isSelected, hasFocus, row, column);
+                label.setHorizontalAlignment(JLabel.CENTER);
+                
+                if (value instanceof Integer) {
+                    int estado = (Integer) value;
+                    switch (estado) {
+                        case MediaFileTableModel.ESTADO_SINCRONIZADO: // 2
+                            label.setText("✔"); 
+                            label.setForeground(new java.awt.Color(0, 153, 0)); 
+                            label.setToolTipText("Sincronizado: PC + Nube");
+                            break;
+                        case MediaFileTableModel.ESTADO_REMOTO: // 1
+                            label.setText("☁"); 
+                            label.setForeground(java.awt.Color.BLUE);
+                            label.setToolTipText("Solo en la Nube");
+                            break;
+                        default: // 0
+                            label.setText("💻"); 
+                            label.setForeground(java.awt.Color.GRAY);
+                            label.setToolTipText("Solo en Local");
+                            break;
+                    }
+                }
+                return label;
+            }
+        });
+        
+        // 5. Configurar el resto (Combos y Listas)
         cmbOrdenarPor.setModel(new javax.swing.DefaultComboBoxModel<>(new ColumnaOrden[] {
             new ColumnaOrden("Nombre", 0),
             new ColumnaOrden("Tamaño", 1),
             new ColumnaOrden("Fecha", 2)
         }));
         
-        // 5. Configura el JList<TipoMimeFiltro> (un <object>)
         listFiltroTipo.setModel(new javax.swing.AbstractListModel<TipoMimeFiltro>() {
             TipoMimeFiltro[] filtros = new TipoMimeFiltro[] {
                 new TipoMimeFiltro("Todos", "*"),
@@ -65,39 +105,32 @@ public class BibliotecaPanel extends javax.swing.JPanel {
             public int getSize() { return filtros.length; }
             public TipoMimeFiltro getElementAt(int i) { return filtros[i]; }
         });
-        listFiltroTipo.setSelectedIndex(0); // Dejamos "Todos" seleccionado
+        listFiltroTipo.setSelectedIndex(0); 
         
-        // --- CONECTAR EVENTOS ---
-        // Esto garantiza que la tabla se refresca cuando se cambia el filtro o el orden
-        listFiltroTipo.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-            @Override
-            public void valueChanged(javax.swing.event.ListSelectionEvent e) {
-                if (!e.getValueIsAdjusting()) {
-                    try {
-                        aplicarFiltrosYOrden();
-                    } catch (IOException ex) {
-                        System.getLogger(BibliotecaPanel.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-                    }
-                }
+        // 6. Configurar Eventos (Listeners)
+        // Usamos expresiones lambda (->) que son más limpias
+        listFiltroTipo.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                applyingFiltrosYOrdenWrapper();
             }
         });
         
-        //Esto garantiza que el panelAcciones (PAGE_END) no sea absorbido y los botones se vean correctamente.
-        panelAcciones.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        
-        cmbOrdenarPor.addActionListener(new java.awt.event.ActionListener() {
-            @Override
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                try {
-                    aplicarFiltrosYOrden();
-                } catch (IOException ex) {
-                    System.getLogger(BibliotecaPanel.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-                }
-            }
+        cmbOrdenarPor.addActionListener(e -> {
+             applyingFiltrosYOrdenWrapper();
         });
         
-        // --- FIN DE LA CONEXIÓN DE MOTORES ---
-        
+        // Borde para que se vean los botones de abajo
+        panelAcciones.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
+    }
+    
+    // --- ESTE MÉTODO VA FUERA DEL CONSTRUCTOR, PERO DENTRO DE LA CLASE ---
+    // Un pequeño ayudante para no repetir try-catch en los listeners
+    private void applyingFiltrosYOrdenWrapper() {
+        try {
+            aplicarFiltrosYOrden();
+        } catch (Exception ex) {
+            System.err.println("Error al refrescar la tabla: " + ex.getMessage());
+        }       
     }
     
     /**
@@ -122,72 +155,110 @@ public class BibliotecaPanel extends javax.swing.JPanel {
      * y los muestra en la tabla.
      */
     public void aplicarFiltrosYOrden() throws IOException {
-        System.out.println("Aplicando filtros y ordenación..."); 
-        
-        // 1. Coger la lista COMPLETA de archivos desde el JSON
+        System.out.println("Sincronizando biblioteca (Fusión Local + Nube)...");
+
+        // 1. CARGAR ARCHIVOS LOCALES (Tu disco duro)
         String rutaCarpetaGuardado = parentFrame.getRutaGuardado();
         GestorJson gestor = new GestorJson(rutaCarpetaGuardado);
-        java.util.List<MediaFile> listaCompleta;
+        List<MediaFile> listaLocal = gestor.leerArchivos();
+        if (listaLocal == null) listaLocal = new ArrayList<>();
+
+        // 2. CARGAR ARCHIVOS REMOTOS (Desde la API)
+        List<Media> listaRemota = new ArrayList<>();
         try {
-            listaCompleta = gestor.leerArchivos();
-        } catch (IOException e) {
-            System.err.println("Error FATAL al cargar la biblioteca: " + e.getMessage());
-            listaCompleta = new java.util.ArrayList<>(); // Usamos una lista vacía si hay error
+            // Pedimos el cliente al MainFrame (que usa el componente bueno)
+            if (parentFrame.getApiClient() != null) {
+                // Usamos el token actual
+                String token = parentFrame.getCurrentJwtToken();
+                if (token != null && !token.isEmpty()) {
+                    listaRemota = parentFrame.getApiClient().getAllMedia(token);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("No se pudo conectar con la API para listar remotos: " + e.getMessage());
         }
-        // 2. Obtener el estado de ordenación/dirección del MainFrame
+
+        // 3. LA GRAN FUSIÓN
+        // Creamos una lista combinada y un mapa de estados
+        List<MediaFile> listaFinal = new ArrayList<>(listaLocal);
+        Map<String, Integer> mapaEstados = new HashMap<>();
+
+        // A) Marcamos todos los locales como LOCAL (0) por defecto
+        for (MediaFile local : listaLocal) {
+            mapaEstados.put(local.getNombre(), MediaFileTableModel.ESTADO_LOCAL);
+        }
+
+        // B) Cruzamos con la lista remota
+        for (com.berlangadiaz.dimedianet.api.Media remoto : listaRemota) {
+            boolean encontradoEnLocal = false;
+
+            // --- CORRECCIÓN AQUÍ ---
+            // Usamos la variable directa 'mediaFileName' porque es pública en tu clase Media
+            String nombreRemoto = remoto.mediaFileName;
+
+            // Protección por si viene nulo
+            if (nombreRemoto == null) {
+                continue;
+            }
+
+            // Buscamos coincidencia en los locales
+            for (MediaFile local : listaLocal) {
+                if (local.getNombre().equalsIgnoreCase(nombreRemoto)) {
+                    // ¡COINCIDENCIA! Está en los dos sitios -> SINCRONIZADO (2)
+                    mapaEstados.put(local.getNombre(), MediaFileTableModel.ESTADO_SINCRONIZADO);
+                    encontradoEnLocal = true;
+                    break;
+                }
+            }
+
+            // Si NO está en local, lo añadimos como "Fantasma" (Solo Nube)
+            if (!encontradoEnLocal) {
+                // Creamos un MediaFile "falso" usando el nombre que nos da la API
+                java.io.File dummyFile = new java.io.File(nombreRemoto);
+                MediaFile remotoMF = new MediaFile(dummyFile);
+
+                listaFinal.add(remotoMF);
+
+                // Marcamos como REMOTO (1) en el mapa
+                mapaEstados.put(remotoMF.getNombre(), MediaFileTableModel.ESTADO_REMOTO);
+            }
+        }
+
+        // 4. FILTRADO (Igual que antes)
+        TipoMimeFiltro filtroMime = listFiltroTipo.getSelectedValue();
+        String tipoMime = (filtroMime != null) ? filtroMime.getPrefijoMime() : "*";
+
+        List<MediaFile> listaFiltrada = new ArrayList<>();
+        for (MediaFile f : listaFinal) {
+            // Filtro simple: si es "*" pasa, si no, check startsWith
+            if (tipoMime.equals("*") || (f.getTipoMime() != null && f.getTipoMime().startsWith(tipoMime))) {
+                listaFiltrada.add(f);
+            }
+        }
+
+        // 5. ORDENACIÓN (Igual que antes)
         int columnaOrden = parentFrame.getColumnaOrdenActual();
         final boolean ASCENDENTE = parentFrame.isOrdenAscendente();
 
-        // 3. Obtener el filtro seleccionado de la JList (Tipo MIME)
-        TipoMimeFiltro filtroMime = listFiltroTipo.getSelectedValue();
-        if (filtroMime == null) { return; }
-        String tipoMime = filtroMime.getPrefijoMime(); // Ej: "video/" o "*"
-
-        // 4. Filtrar la lista
-        java.util.List<MediaFile> listaFiltrada = new java.util.ArrayList<>();
-        if (tipoMime.equals("*")) {
-            // Si es "Todos", añade la lista completa
-            listaFiltrada.addAll(listaCompleta);
-        } else {
-            // Si es "video/" o "audio/", filtra la lista
-            for (MediaFile archivo : listaCompleta) {
-                if (archivo.getTipoMime().startsWith(tipoMime)) {
-                    listaFiltrada.add(archivo);
-                }
+        java.util.Collections.sort(listaFiltrada, (f1, f2) -> {
+            int res = 0;
+            switch (columnaOrden) {
+                case 1: // Tamaño
+                    res = Long.compare(f1.getTamanoBytes(), f2.getTamanoBytes()); 
+                    break;
+                case 2: // Fecha
+                    res = Long.compare(f1.getFechaCreacionMs(), f2.getFechaCreacionMs()); 
+                    break;
+                default: // Nombre
+                    res = f1.getNombre().compareToIgnoreCase(f2.getNombre()); 
+                    break;
             }
-        }
-        
-        // 5. Ordenar la lista filtrada (usando la lógica bidireccional del Comparador)
-        java.util.Collections.sort(listaFiltrada, new java.util.Comparator<MediaFile>() {
-            @Override
-            public int compare(MediaFile f1, MediaFile f2) {
-                int resultadoComparacion;
-                
-                switch (columnaOrden) {
-                    case 1: // Tamaño
-                        resultadoComparacion = Long.compare(f1.getTamanoBytes(), f2.getTamanoBytes());
-                        break;
-                    case 2: // Fecha
-                        resultadoComparacion = Long.compare(f1.getFechaCreacionMs(), f2.getFechaCreacionMs());
-                        break;
-                    case 0: // Nombre (por defecto)
-                    default:
-                        resultadoComparacion = f1.getNombre().compareToIgnoreCase(f2.getNombre());
-                        break;
-                }
-
-                // Aplicamos la dirección: si es descendente (y la comparación no es igual), invertimos el resultado
-                if (ASCENDENTE) {
-                    return resultadoComparacion; // Devolvemos A->Z (o más pequeño a más grande)
-                } else {
-                    return -resultadoComparacion; // Devolvemos Z->A (o más grande a más pequeño)
-                }
-            }
+            return ASCENDENTE ? res : -res;
         });
 
-        // 6. Finalmente, le decimos al "motor" de la tabla que muestre la lista
-        tableModel.setArchivos(listaFiltrada);
-        System.out.println("Carga finalizada. Registros mostrados: " + listaFiltrada.size());
+        // 6. ACTUALIZAR TABLA CON DATOS Y ESTADOS
+        tableModel.setArchivos(listaFiltrada, mapaEstados);
+        System.out.println("Biblioteca actualizada: " + listaFiltrada.size() + " elementos.");
     }
 
     /**

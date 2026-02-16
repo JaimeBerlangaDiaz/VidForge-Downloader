@@ -1,123 +1,88 @@
 package berlangadiaz.vidforge.downloader.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.swing.table.AbstractTableModel;
 
 /**
- * Clase "Modelo" para la JTable
- * Hereda de AbstractTableModel para decirle a la JTable cómo mostrar
- * una lista de objetos MediaFile
+ * Modelo de tabla mejorado para soportar estados de sincronización.
  */
-public class MediaFileTableModel extends AbstractTableModel{
+public class MediaFileTableModel extends AbstractTableModel {
     
-    // La lista de datos (nuestros objetos MediaFile)
     private List<MediaFile> archivos;
+    // Mapa para guardar el estado de cada archivo: 
+    // Key: Nombre del archivo , Value: Estado (0=Local, 1=Remoto, 2=Sincronizado)
+    private Map<String, Integer> estados; 
+
+    // Añadimos la columna "Estado" al principio o al final
+    private final String[] columnas = {"Estado", "Nombre", "Tamaño", "Fechas", "Tipo MIME"};
     
-    // Los nombres de las columnas que verá el usuario
-    private final String[] columnas = {"Nombre", "Tamaño", "Fechas", "Tipo MIME"};
-    
-    /**
-     * Constructor. Inicializa la lista de archivos vacía.
-     */
-    public MediaFileTableModel(){
+    public static final int ESTADO_LOCAL = 0;
+    public static final int ESTADO_REMOTO = 1;
+    public static final int ESTADO_SINCRONIZADO = 2;
+
+    public MediaFileTableModel() {
         this.archivos = new ArrayList<>();
+        this.estados = new HashMap<>();
     }
-    
-    /**
-     * Constructor que inicializa el modelo con una lista predefinida de archivos.
-     * Este constructor es necesario para la carga inicial y el refresco de la tabla.
-     * @param archivos La lista de objetos MediaFile a mostrar en la JTable.
-     */
-    public MediaFileTableModel(List<MediaFile> archivos) {
-        this.archivos = archivos; 
-        // Llama a fireTableDataChanged() al final del setArchivos/setArchivos para notificar el cambio,
-        // pero podemos asumir que el llamador lo hará si lo inicializamos aquí, 
-        // o podemos llamarlo para estar seguros:
-        fireTableDataChanged(); 
-    }
-    
-    // Métodos obligatorios de AbstractModel
-    
-    /**
-     * Devuelve el número de filas (cuántos archivos hay).
-     */
+
     @Override
-    public int getRowCount(){
+    public int getRowCount() {
         return archivos.size();
     }
-    
-    /**
-     * Devuelve el número de columnas (lo definimos en nuestro array)
-     */
+
     @Override
-    public int getColumnCount(){
+    public int getColumnCount() {
         return columnas.length;
     }
-    
-    /**
-     * Devuelve el nombre de la columna para la cabecera de la tabla
-     */
+
     @Override
-    public String getColumnName(int columnIndex){
+    public String getColumnName(int columnIndex) {
         return columnas[columnIndex];
     }
     
-    /**
-     * Este es el método más importante
-     * Devuelve el valor que se debe mostrar en una celda específica.
-     * @param rowIndex La fila (el MediaFile)
-     * @param columnIndex La columna (Nombre, Tamaño, Fecha, etc..)
-     * @param El dato (String) a mostrar.
-     */
+    // IMPORTANTE: Decimos qué tipo de objeto hay en cada columna para que el Renderer funcione
     @Override
-    public Object getValueAt(int rawIndex, int columnIndex){
-        // Obtener el MediaFile de la fila correspondiente
-        MediaFile archivo = archivos.get(rawIndex);
+    public Class<?> getColumnClass(int columnIndex) {
+        if (columnIndex == 0) return Integer.class; // La columna estado es un número (que pintaremos como icono)
+        return String.class;
+    }
+
+    @Override
+    public Object getValueAt(int rowIndex, int columnIndex) {
+        MediaFile archivo = archivos.get(rowIndex);
         
-        // Decidir qué Dato devolver según la columna.
         switch(columnIndex){
-            case 0: //Columna "Nombre"
-                return archivo.getNombre();
-            case 1: //Columna "Tamaño"
-                // Usamos el método formateado que creamos en MediaFile
-                return archivo.getTamanoFormateado(); //"10.5MB"
-            case 2: //Columna "Fecha"
-                return archivo.getFechaFormateada(); // "10/05/2025 18:30"
-            case 3: //Columna "Tipo MIME"
-                return archivo.getTipoMime();
-            default:
-                return null; //No debería pasar
+            case 0: // Columna ESTADO
+                // Buscamos el estado en el mapa, si no está, asumimos Local (0)
+                return estados.getOrDefault(archivo.getNombre(), ESTADO_LOCAL);
+            case 1: return archivo.getNombre();
+            case 2: return archivo.getTamanoFormateado();
+            case 3: return archivo.getFechaFormateada();
+            case 4: return archivo.getTipoMime();
+            default: return null;
         }
     }
+
+    public void setArchivos(List<MediaFile> archivos, Map<String, Integer> estados){
+        this.archivos = archivos;
+        this.estados = estados;
+        fireTableDataChanged();
+    }
     
-    // Métodos auxiliares para manejar los datos 
-    
-    /**
-     * Establece la lista de archivos a mostrar y refrescar la tabla.
-     * @param archivos La nueva lista de MediaFile
-     */
+    // Sobrecarga para compatibilidad si solo pasas lista (asume todo local)
     public void setArchivos(List<MediaFile> archivos){
         this.archivos = archivos;
-        //Notifica a la JTable que todos los datos han cambiado.
+        this.estados = new HashMap<>();
         fireTableDataChanged();
     }
-    
-    /**
-     * Devuelve el objeto MediaFile de una fila específica.
-     * (Lo usaremos para el botón "Borrar").
-     * @param rowIndex La fila seleccionada.
-     * @return El objeto MediaFile.
-     */
+
     public MediaFile getFileAt(int rowIndex){
-        return archivos.get(rowIndex);
-    }
-    
-    /**
-     * Limpia la tabla
-     */
-    public void clear(){
-        this.archivos.clear();
-        fireTableDataChanged();
+        if (rowIndex >= 0 && rowIndex < archivos.size()) {
+            return archivos.get(rowIndex);
+        }
+        return null;
     }
 }

@@ -1,6 +1,6 @@
 package berlangadiaz.vidforge.downloader.model;
 
-// Imports necesarios para manejar archivos, fechas y tipos MIME
+// Imports necesarios
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -9,60 +9,71 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * Clase "Modelo" (el molde) para la Tarea 2.
- * Representa un archivo descargado. Guarda toda la información
- * que nos pide el cliente (nombre, tamaño, tipo, fecha).
+ * Clase "Modelo" arreglada para soportar archivos Locales y Remotos (Nube).
  */
 public class MediaFile {
     
     // Atributos que guardaremos en el JSON
     private String nombre;
     private String ruta;
-    private long tamanoBytes; // long para tamaños grandes
+    private long tamanoBytes;
     private String tipoMime;
-    private long fechaCreacionMs; // long para la fecha en milisegundos
+    private long fechaCreacionMs;
     
     // --- Constructores ---
     
     /**
-     * Constructor principal. Recibe un objeto File (del disco)
-     * y extrae toda la información necesaria.
-     * * @param archivo El archivo físico del disco (ej. "video.mp4")
+     * Constructor Inteligente. 
+     * Acepta archivos que existen (PC) y archivos que no existen aún (Nube).
+     * @param archivo El puntero al archivo (puede ser real o virtual).
      */
     public MediaFile(File archivo) {
-        if (archivo == null || !archivo.exists()) {
-            throw new IllegalArgumentException("El archivo no puede ser nulo o no existe.");
+        // 1. Validación: Solo comprobamos que el objeto no sea nulo.
+        // YA NO comprobamos !archivo.exists() para permitir archivos de la nube.
+        if (archivo == null) {
+            throw new IllegalArgumentException("El archivo no puede ser nulo.");
         }
         
+        // 2. Datos básicos (Siempre los tenemos, existan o no)
         this.nombre = archivo.getName();
         this.ruta = archivo.getAbsolutePath();
-        this.tamanoBytes = archivo.length();
         
-        // --- Lógica para obtener el Tipo MIME y la Fecha ---
-        try {
-            // Obtener el tipo MIME (ej. "video/mp4")
-            this.tipoMime = Files.probeContentType(archivo.toPath());
+        // 3. Lógica Diferenciada
+        if (archivo.exists()) {
+            // --- ES UN ARCHIVO LOCAL (PC) ---
+            // Leemos los datos reales del disco
+            this.tamanoBytes = archivo.length();
             
-            // Obtener los atributos básicos del archivo
-            BasicFileAttributes attrs = Files.readAttributes(archivo.toPath(), BasicFileAttributes.class);
-            
-            // Guardar la fecha de creación en milisegundos (un número largo)
-            this.fechaCreacionMs = attrs.creationTime().toMillis();
-            
-        } catch (IOException e) {
-            System.err.println("Error al leer atributos del archivo: " + e.getMessage());
-            this.tipoMime = "desconocido";
-            this.fechaCreacionMs = System.currentTimeMillis(); // Pone la fecha de hoy
+            try {
+                // Intentar obtener tipo MIME
+                this.tipoMime = Files.probeContentType(archivo.toPath());
+                if (this.tipoMime == null) this.tipoMime = "application/octet-stream";
+
+                // Intentar obtener fecha de creación
+                BasicFileAttributes attrs = Files.readAttributes(archivo.toPath(), BasicFileAttributes.class);
+                this.fechaCreacionMs = attrs.creationTime().toMillis();
+                
+            } catch (IOException e) {
+                System.err.println("Aviso: No se pudieron leer atributos extra de " + this.nombre);
+                this.tipoMime = "desconocido";
+                this.fechaCreacionMs = System.currentTimeMillis();
+            }
+        } else {
+            // --- ES UN ARCHIVO REMOTO (SOLO NUBE) ---
+            // Como no existe en el disco, ponemos datos vacíos para evitar errores
+            this.tamanoBytes = 0;
+            this.tipoMime = "nube/pendiente";
+            this.fechaCreacionMs = 0; // Fecha 0 (1970) o puedes poner System.currentTimeMillis()
         }
     }
     
     /**
-     * Constructor vacío (necesario para que la biblioteca GSON funcione).
+     * Constructor vacío (necesario para GSON/Jackson).
      */
     public MediaFile() {
     }
 
-    // --- Getters (Métodos para leer la información) ---
+    // --- Getters ---
     
     public String getNombre() {
         return nombre;
@@ -84,7 +95,7 @@ public class MediaFile {
         return fechaCreacionMs;
     }
     
-    // --- Setters (Métodos para escribir la información) ---
+    // --- Setters ---
 
     public void setNombre(String nombre) {
         this.nombre = nombre;
@@ -108,11 +119,10 @@ public class MediaFile {
     
     // --- Métodos de Ayuda (para la JTable) ---
 
-    /**
-     * Devuelve el tamaño en formato legible (ej. "10.5 MB").
-     * Esto lo usará nuestra JTable.
-     */
     public String getTamanoFormateado() {
+        // Si es 0 (archivo de nube), podemos devolver algo específico o "0 B"
+        if (tamanoBytes == 0) return "---"; // Opcional: Indicar que no tiene tamaño
+        
         if (tamanoBytes < 1024) {
             return tamanoBytes + " B";
         }
@@ -121,20 +131,15 @@ public class MediaFile {
         return String.format("%.1f %sB", tamanoBytes / Math.pow(1024, exp), pre);
     }
     
-    /**
-     * Devuelve la fecha en formato legible (ej. "28-10-2025 18:30").
-     * Esto lo usará nuestra JTable.
-     */
     public String getFechaFormateada() {
+        // Si la fecha es 0 (archivo de nube), devolvemos cadena vacía o "Pendiente"
+        if (fechaCreacionMs == 0) return "En la Nube";
+        
         Date fecha = new Date(this.fechaCreacionMs);
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm");
         return sdf.format(fecha);
     }
     
-    /**
-     * Devuelve el objeto File original.
-     * Lo usaremos para poder BORRAR el archivo.
-     */
     public File getFichero() {
         return new File(this.ruta);
     }

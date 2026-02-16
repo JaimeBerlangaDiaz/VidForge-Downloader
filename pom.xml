@@ -12,7 +12,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>        
         <exec.mainClass>berlangadiaz.vidforge.downloader.view.MainFrame</exec.mainClass>
-        <maven.compiler.release>25</maven.compiler.release>
+        <maven.compiler.release>24</maven.compiler.release>
     </properties>    
     <dependencies>
         <dependency>
@@ -24,6 +24,11 @@
             <groupId>com.berlangadiaz</groupId>
             <artifactId>DiMediaNetComponent</artifactId>
             <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf</artifactId>
+            <version>3.2.5</version>
         </dependency>
     </dependencies>   
     <build>

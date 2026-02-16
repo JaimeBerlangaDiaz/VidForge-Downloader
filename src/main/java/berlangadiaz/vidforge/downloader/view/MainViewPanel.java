@@ -8,8 +8,6 @@ import berlangadiaz.vidforge.downloader.model.DownloadWorker;
 import berlangadiaz.vidforge.downloader.model.GestorJson;
 import berlangadiaz.vidforge.downloader.model.MediaFile;
 import com.berlangadiaz.dimedianet.api.ApiClient;
-import com.berlangadiaz.dimedianet.events.NewMediaEvent;
-import com.berlangadiaz.dimedianet.events.NewMediaListener;
 import javax.swing.SwingUtilities;
 import java.util.List;
 import java.util.ArrayList;
@@ -45,8 +43,42 @@ public class MainViewPanel extends javax.swing.JPanel {
     public MainViewPanel(MainFrame parent) {
         initComponents();
         this.parentFrame = parent; 
+
+        // Código para redimensionar el icono Download y que no se vea gigante
+        try {
+            java.net.URL imgUrl = getClass().getResource("/images/download_icon.png");
+            if (imgUrl != null) {
+                javax.swing.ImageIcon iconOriginal = new javax.swing.ImageIcon(imgUrl);
+                // 20x20 es el tamaño ideal para que no rompa el botón
+                java.awt.Image imgEscalada = iconOriginal.getImage().getScaledInstance(40, 32, java.awt.Image.SCALE_SMOOTH);
+                btnDescargar.setIcon(new javax.swing.ImageIcon(imgEscalada));
+            }
+        } catch (Exception e) {
+            System.err.println("Error al cargar el icono: " + e.getMessage());
+        }
+
+        // 2. Aprovechamos para poner el cursor de mano (Affordance)
+        btnDescargar.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        // 3. Comprobación de validación de la URL
+        btnDescargar.setEnabled(false);
+        txtUrl.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { validar(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { validar(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { validar(); }
+            
+            private void validar() {
+                String texto = txtUrl.getText().trim();
+                btnDescargar.setEnabled(!texto.isEmpty() && texto.contains("http"));
+            }
+        });
+        txtUrl.addActionListener(e -> {
+            if (btnDescargar.isEnabled()) {
+                btnDescargar.doClick();
+            }
+        });
         // Inicializar los Modelos de JComboBox (Asumo que videoFormatsModel, etc., están declarados arriba)
-        String[] videoFormats = {"mp4","mkv","webm"};
+        String[] videoFormats = {"mp4", "mkv", "webm"};
         videoFormatsModel = new javax.swing.DefaultComboBoxModel<>(videoFormats);
         String[] audioFormats = {"mp3","m4a","wav","flac"};
         audioFormatsModel = new javax.swing.DefaultComboBoxModel<>(audioFormats);
@@ -74,78 +106,35 @@ public class MainViewPanel extends javax.swing.JPanel {
                 java.awt.event.InputEvent.META_DOWN_MASK
         );
         txtUrl.getInputMap().put(commandV, "paste");
-        
-        //INTEGRACIÓN DE DIMEDIALINK1
-        
-        // 1. Configuración de URL y tiempo
-        diMediaLink1.setApiUrl(parentFrame.getApiUrl());
-        diMediaLink1.setPollingInterval(15);
-        
-        // 2. Escuchamos los eventos (Cuando encuentra archivos nuevos)
-        diMediaLink1.addNewMediaListener(new NewMediaListener() {
-            @Override
-            public void onNewMediaFound(NewMediaEvent evt) {
-                SwingUtilities.invokeLater(() -> {
-                    String msg = "¡Nuevos archivos detectados en el servidor!\n" + 
-                                 "Cantidad: " + evt.getNewMediaList().size() + "\n" +
-                                 "Hora: " + evt.getDiscoveryTime(); // CORREGIDO: getDiscoveryTime()
-                    
-                    int opcion = JOptionPane.showConfirmDialog(MainViewPanel.this, 
-                            msg + "\n¿Quieres recargar la lista ahora?", 
-                            "Novedades detectadas", 
-                            JOptionPane.YES_NO_OPTION);
-                    
-                    if (opcion == JOptionPane.YES_OPTION) {
-                        // Refrescamos la biblioteca si existe
-                        BibliotecaPanel biblioteca = parentFrame.getPanelBiblioteca();
-                        if (biblioteca != null) {
-                            try {
-                                System.out.println("Usuario aceptó. Refrescando biblioteca...");
-                                biblioteca.aplicarFiltrosYOrden();
-                            } catch (IOException ex) {
-                                System.getLogger(MainViewPanel.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-                            }
-                        }
-                    }
-                });
+
+        // Deshabilitar botón por defecto
+        btnDescargar.setEnabled(false);
+
+        // Escuchar lo que el usuario escribe en la caja de URL
+        txtUrl.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) {
+                validar();
+            }
+
+            public void removeUpdate(javax.swing.event.DocumentEvent e) {
+                validar();
+            }
+
+            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+                validar();
+            }
+
+            private void validar() {
+                // Solo activamos si hay texto y contiene "http"
+                String texto = txtUrl.getText().trim();
+                btnDescargar.setEnabled(!texto.isEmpty() && texto.contains("http"));
             }
         });
     }
     
-    // --- MÉTODOS PARA CONTROLAR EL COMPONENTE DESDE EL MAIN FRAME ---
-    /**
-     * Se llama cuando el Login es exitoso.Le da el token al componente y lo enciende.
-     * @param token
-     */
-    
-    public void iniciarPoller(String token) {
-        // CORREGIDO: Usamos diMediaLink1
-        if (diMediaLink1 != null) {
-            diMediaLink1.setToken(token);
-            diMediaLink1.setRunning(true);
-            System.out.println("MainViewPanel: Poller iniciado.");
-        }
-    }
-    
-    // Alias para compatibilidad con MainFrame (a veces lo llamamos activarPolling)
-    public void activarPolling(String token) {
-        iniciarPoller(token);
-    }
-
-    /**
-     * Se llama al cerrar sesión o salir.
-     */
-    public void detenerPoller() {
-        // CORREGIDO: Usamos diMediaLink1
-        if (diMediaLink1 != null) {
-            diMediaLink1.setRunning(false);
-            System.out.println("MainViewPanel: Poller detenido.");
-        }
-    }
-    
     // Método getter para el ApiClient
     public ApiClient getApiClient() {
-        return diMediaLink1.getApiClient(); 
+        return parentFrame.getApiClient(); 
     } 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -178,7 +167,6 @@ public class MainViewPanel extends javax.swing.JPanel {
         rbAudioNormal = new javax.swing.JRadioButton();
         jLabel4 = new javax.swing.JLabel();
         cmbFormato = new javax.swing.JComboBox<>();
-        diMediaLink1 = new com.berlangadiaz.dimedianet.component.DiMediaLink();
 
         jCheckBoxMenuItem1.setSelected(true);
         jCheckBoxMenuItem1.setText("jCheckBoxMenuItem1");
@@ -225,13 +213,15 @@ public class MainViewPanel extends javax.swing.JPanel {
         rbVideoMejor.setBounds(130, 130, 130, 21);
 
         btnDescargar.setText("Descargar");
+        btnDescargar.setToolTipText("Haz clic para iniciar la descarga ! ");
+        btnDescargar.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         btnDescargar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnDescargarActionPerformed(evt);
             }
         });
         add(btnDescargar);
-        btnDescargar.setBounds(10, 260, 100, 40);
+        btnDescargar.setBounds(10, 260, 260, 40);
 
         txtLog.setColumns(20);
         txtLog.setRows(5);
@@ -251,7 +241,7 @@ public class MainViewPanel extends javax.swing.JPanel {
 
         progressBar.setStringPainted(true);
         add(progressBar);
-        progressBar.setBounds(110, 280, 490, 20);
+        progressBar.setBounds(270, 280, 330, 20);
 
         jLabel2.setText("Calidad de Video:");
         add(jLabel2);
@@ -289,8 +279,6 @@ public class MainViewPanel extends javax.swing.JPanel {
         cmbFormato.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "mp4", "mkv", "webm", "mp3" }));
         add(cmbFormato);
         cmbFormato.setBounds(160, 170, 72, 22);
-        add(diMediaLink1);
-        diMediaLink1.setBounds(300, 430, 300, 20);
     }// </editor-fold>//GEN-END:initComponents
 
     private void chkSoloAudioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkSoloAudioActionPerformed
@@ -544,7 +532,6 @@ public class MainViewPanel extends javax.swing.JPanel {
     private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.JCheckBox chkSoloAudio;
     private javax.swing.JComboBox<String> cmbFormato;
-    private com.berlangadiaz.dimedianet.component.DiMediaLink diMediaLink1;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem1;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem2;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem3;
