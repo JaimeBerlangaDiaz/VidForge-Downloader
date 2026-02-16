@@ -52,9 +52,11 @@ public class MediaFile {
                 // Intentar obtener fecha de creación
                 BasicFileAttributes attrs = Files.readAttributes(archivo.toPath(), BasicFileAttributes.class);
                 this.fechaCreacionMs = attrs.creationTime().toMillis();
-                
+
             } catch (IOException e) {
-                System.err.println("Aviso: No se pudieron leer atributos extra de " + this.nombre);
+                // Log para el archivo de texto
+                berlangadiaz.vidforge.downloader.model.LoggerError.log("Error al leer atributos físicos del archivo: " + this.nombre, e);
+
                 this.tipoMime = "desconocido";
                 this.fechaCreacionMs = System.currentTimeMillis();
             }

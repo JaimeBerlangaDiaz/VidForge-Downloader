@@ -6,6 +6,7 @@ package berlangadiaz.vidforge.downloader.view;
 
 import berlangadiaz.vidforge.downloader.model.DownloadWorker;
 import berlangadiaz.vidforge.downloader.model.GestorJson;
+import berlangadiaz.vidforge.downloader.model.LoggerError;
 import berlangadiaz.vidforge.downloader.model.MediaFile;
 import com.berlangadiaz.dimedianet.api.ApiClient;
 import javax.swing.SwingUtilities;
@@ -416,8 +417,24 @@ public class MainViewPanel extends javax.swing.JPanel {
 
         // Añadir URL y Ejecutar Worker.
         command.add(url);
-        DownloadWorker worker = new DownloadWorker(command, progressBar, txtLog, btnDescargar, this, parentFrame);
-        worker.execute();
+        try {
+            // Intentamos ejecutar el Worker
+            DownloadWorker worker = new DownloadWorker(command, progressBar, txtLog, btnDescargar, this, parentFrame);
+            worker.execute();
+
+        } catch (Exception ex) {
+            // REGISTRO TÉCNICO: Se guarda en el error_log.txt
+            LoggerError.log("Error crítico al intentar iniciar el hilo de descarga", ex);
+
+            // FEEDBACK VISUAL: Diálogo para el usuario
+            JOptionPane.showMessageDialog(this,
+                    "No se pudo iniciar el proceso de descarga.\nDetalle: " + ex.getMessage(),
+                    "Fallo de Inicio",
+                    JOptionPane.ERROR_MESSAGE);
+
+            // RESTAURACIÓN: Devolvemos el control al botón
+            btnDescargar.setEnabled(true);
+        }
     }//GEN-LAST:event_btnDescargarActionPerformed
     /* 
     * Lógica de reproducción

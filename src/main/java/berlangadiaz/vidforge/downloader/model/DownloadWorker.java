@@ -77,15 +77,32 @@ public class DownloadWorker extends SwingWorker<String, String> {
             } else {
                 return "ERROR: La descarga falló (código de salida: " + exitCode + ")";
             }
-        } catch (IOException | InterruptedException e) {
-            return "ERROR CRÍTICO: " + e.getMessage();
+        } catch (Exception ex) {
+            // Feedback visual
+            JOptionPane.showMessageDialog(mainView, "Error durante la descarga: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+
+            // Log del sistema (Punto 4 de la rúbrica)
+            LoggerError.log("Fallo crítico en el proceso de descarga de vídeo", ex);
+
+            // Esto soluciona el "missing return statement"
+            return "ERROR: " + ex.getMessage();
+
         } finally {
-            //Cerramos streams para evitar bloqueos en la siguiente descarga
-            if (process != null){
-            try { process.getInputStream().close(); } catch (IOException ignored) {}
-            try { process.getErrorStream().close(); } catch (IOException ignored) {}
-            try { process.getOutputStream().close(); } catch (IOException ignored) {}
-            process.destroy();
+            // Cerramos streams para evitar bloqueos en la siguiente descarga
+            if (process != null) {
+                try {
+                    process.getInputStream().close();
+                } catch (IOException ignored) {
+                }
+                try {
+                    process.getErrorStream().close();
+                } catch (IOException ignored) {
+                }
+                try {
+                    process.getOutputStream().close();
+                } catch (IOException ignored) {
+                }
+                process.destroy();
             }
         }
     }

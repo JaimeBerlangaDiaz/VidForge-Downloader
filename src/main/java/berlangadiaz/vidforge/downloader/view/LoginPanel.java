@@ -5,6 +5,7 @@ import com.berlangadiaz.dimedianet.api.Usuari;
 import com.berlangadiaz.dimedianet.api.ApiClient;
 import com.berlangadiaz.dimedianet.component.DiMediaLink;
 import berlangadiaz.vidforge.downloader.model.GestorJson;
+import berlangadiaz.vidforge.downloader.model.LoggerError;
 import com.berlangadiaz.dimedianet.api.Usuari;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -182,8 +183,11 @@ public class LoginPanel extends JPanel implements ActionListener {
                 }
 
             } catch (Exception ex) {
-                // Captura errores de red, 401 Unauthorized, etc.
-                errorMessage = "No se pudo iniciar sesión.\nVerifica tu email y contraseña o tu conexión a internet.";
+                // 1. Guardamos el error en el archivo de texto (Puntos extra UX)
+                LoggerError.log("Fallo en el intento de autenticación del usuario: " + email, ex);
+
+                // 2. Preparamos el mensaje para la interfaz
+                errorMessage = "Error de Autenticación: " + ex.getMessage();
             }
 
             // 4. Manejo de errores (Volver al EDT)

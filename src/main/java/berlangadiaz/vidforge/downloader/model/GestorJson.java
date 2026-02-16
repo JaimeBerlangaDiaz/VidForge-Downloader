@@ -128,6 +128,10 @@ public class GestorJson {
             List<MediaFile> archivos = mapper.readValue(reader, new TypeReference<List<MediaFile>>() {
             });
             return (archivos != null) ? archivos : new ArrayList<>();
+        }catch (IOException e) {
+            // REGISTRO DE ERROR
+            berlangadiaz.vidforge.downloader.model.LoggerError.log("Error al deserializar log.json (historial)", e);
+            throw e; // Re-lanzamos para que la UI informe al usuario
         }
     }
 
@@ -161,12 +165,18 @@ public class GestorJson {
     private void guardarArchivos(List<MediaFile> lista) throws IOException {
         asegurarRutaBase();
         File logFile = new File(rutaBase, LOG_FILE_NAME);
-        // Dejamos que Jackson lo maneje
-        mapper.writeValue(logFile, lista);
+        try {
+            // Dejamos que Jackson lo maneje
+            mapper.writeValue(logFile, lista);
+        } catch (Exception e) {
+            // REGISTRO DE ERROR
+            berlangadiaz.vidforge.downloader.model.LoggerError.log("Error crítico al escribir log.json en disco", e);
+            throw e;
+        }
     }
-
-    // --- MÉTODOS DE PERSISTENCIA DE YT-DLP ---
-    /**
+    
+        // --- MÉTODOS DE PERSISTENCIA DE YT-DLP ---
+        /**
      * Guarda la configuración actual de yt-dlp (rutas, opciones y límites) en
      * un archivo JSON ("config.json") usando la librería Jackson. * Este método
      * se encarga de serializar los parámetros de entrada en un objeto
@@ -221,6 +231,8 @@ public class GestorJson {
             Configuracion config = mapper.readValue(reader, Configuracion.class);
             return config;
         } catch (IOException e) {
+            // REGISTRO DE ERROR
+            berlangadiaz.vidforge.downloader.model.LoggerError.log("Fallo al leer la configuración config.json", e);
             System.err.println("Error al leer config.json con Jackson: " + e.getMessage());
             return null;
         }

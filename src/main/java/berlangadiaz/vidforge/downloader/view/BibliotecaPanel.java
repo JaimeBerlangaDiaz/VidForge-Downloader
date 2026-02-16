@@ -24,6 +24,7 @@ import berlangadiaz.vidforge.downloader.model.MediaFile;
 import berlangadiaz.vidforge.downloader.model.ColumnaOrden;
 import berlangadiaz.vidforge.downloader.model.TipoMimeFiltro;
 import java.io.IOException;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -174,8 +175,14 @@ public class BibliotecaPanel extends javax.swing.JPanel {
                     listaRemota = parentFrame.getApiClient().getAllMedia(token);
                 }
             }
-        } catch (Exception e) {
-            System.err.println("No se pudo conectar con la API para listar remotos: " + e.getMessage());
+        } catch (Exception ex) {
+            // REGISTRO TÉCNICO 
+            berlangadiaz.vidforge.downloader.model.LoggerError.log("Fallo al intentar recargar los datos de la biblioteca", ex);
+
+            // FEEDBACK VISUAL
+            JOptionPane.showMessageDialog(this,
+                    "No se pudo actualizar la lista de archivos.\n" + ex.getMessage(),
+                    "Error de lectura", JOptionPane.ERROR_MESSAGE);
         }
 
         // 3. LA GRAN FUSIÓN
