@@ -65,7 +65,7 @@ public class MediaFile {
             // Como no existe en el disco, ponemos datos vacíos para evitar errores
             this.tamanoBytes = 0;
             this.tipoMime = "nube/pendiente";
-            this.fechaCreacionMs = 0; // Fecha 0 (1970) o puedes poner System.currentTimeMillis()
+            this.fechaCreacionMs = 0; // Fecha 0 (1970) o podemos poner System.currentTimeMillis()
         }
     }
     

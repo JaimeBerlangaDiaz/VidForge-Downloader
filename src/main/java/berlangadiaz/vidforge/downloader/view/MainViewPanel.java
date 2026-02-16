@@ -168,6 +168,7 @@ public class MainViewPanel extends javax.swing.JPanel {
         rbAudioNormal = new javax.swing.JRadioButton();
         jLabel4 = new javax.swing.JLabel();
         cmbFormato = new javax.swing.JComboBox<>();
+        lblStatus = new javax.swing.JLabel();
 
         jCheckBoxMenuItem1.setSelected(true);
         jCheckBoxMenuItem1.setText("jCheckBoxMenuItem1");
@@ -242,7 +243,7 @@ public class MainViewPanel extends javax.swing.JPanel {
 
         progressBar.setStringPainted(true);
         add(progressBar);
-        progressBar.setBounds(270, 280, 330, 20);
+        progressBar.setBounds(270, 260, 330, 20);
 
         jLabel2.setText("Calidad de Video:");
         add(jLabel2);
@@ -280,6 +281,8 @@ public class MainViewPanel extends javax.swing.JPanel {
         cmbFormato.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "mp4", "mkv", "webm", "mp3" }));
         add(cmbFormato);
         cmbFormato.setBounds(160, 170, 72, 22);
+        add(lblStatus);
+        lblStatus.setBounds(270, 280, 330, 20);
     }// </editor-fold>//GEN-END:initComponents
 
     private void chkSoloAudioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkSoloAudioActionPerformed
@@ -520,6 +523,11 @@ public class MainViewPanel extends javax.swing.JPanel {
             System.err.println("Error: El archivo descargado no aparece en el disco: " + rutaFinalArchivo);
         }
     }
+    
+    //Método para actualizar el texto de estado desde el Worker
+    public void setEstadoLabel(String texto) {
+        lblStatus.setText(texto);
+    }
 
     /**
      * Permite al DownloadWorker guardar la ruta del archivo final.
@@ -557,6 +565,7 @@ public class MainViewPanel extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel lblStatus;
     private javax.swing.JProgressBar progressBar;
     private javax.swing.JRadioButton rbAudioBuena;
     private javax.swing.JRadioButton rbAudioNormal;

@@ -57,6 +57,22 @@ Esta fase se centró en la creación de un componente visual independiente (**Ja
 * **`NewMediaListener`:** Interfaz para la suscripción de eventos.
 * **Integración:** El componente se inicia tras el Login y, al detectar archivos, permite al usuario **recargar la biblioteca automáticamente**.
 
+## III. Implementación UT03-04: USABILIDAD Y GESTIÓN DE ERRORES
+
+Esta sección detalla las mejoras aplicadas siguientes:
+
+### III.A Aspecto, Color e Iconografía
+* **DarkLaf:** Integración del Look & Feel *DarkLaf* para una estética moderna y profesional.
+* **Iconografía:** Inclusión de iconos dinámicos para estados de descarga y mensajes de sistema.
+
+### III.B Affordance, Feedback y Restricciones
+* **Affordance:** Uso de `HAND_CURSOR` en botones para indicar interactividad.
+* **Feedback:** Implementación de `JOptionPane` informativos y barras de progreso activas durante la descarga.
+* **Restricciones:** Bloqueo dinámico del botón de descarga para evitar duplicidad de procesos.
+
+### III.C Gestión de Errores y Registro de Logs
+* **Logs on Application Crash:** Implementación de la clase `LoggerError` para persistir fallos en `error_log.txt`.
+* **Gestión Integral de Excepciones:** Se ha blindado el código en la capa de red (Login), procesos (Download), datos (GestorJson) e interfaz (Biblioteca).
 ---
 
 ## III. Problemas Encontrados y Soluciones (Consolidado y Referenciado)
@@ -78,7 +94,14 @@ Esta fase se centró en la creación de un componente visual independiente (**Ja
 | **Ejecución Asíncrona Lenta** | El proceso `yt-dlp` bloqueaba la GUI. Se implementó **`DownloadWorker.java`** heredando de `SwingWorker`. | [Documentación oficial de Oracle sobre SwingWorker](https://docs.oracle.com/javase/tutorial/uiswing/concurrency/worker.html) |
 | **Bug de Tipado/Compilación Componentes** | El diseñador generaba errores con `JComboBox` y `JList` al inyectar objetos complejos. Se resolvió inyectando los modelos de objetos mediante código en `BibliotecaPanel.java`. | (Patrón MVC - Adaptadores) |
 
-### 3. Retos Técnicos de la Parte 2 (Polling)
+### 3. Problemas de la Fase de Usabilidad;
+- **Escalado de Iconos de Estado:** Los iconos de éxito/error se veían desproporcionados en la tabla. Se implementó un método de reescalado dinámico a **32x32** usando `Image.SCALE_SMOOTH`.
+- **Error Unreported Exception:** La llamada al token en `BibliotecaPanel` lanzaba una excepción que el catch de `IOException` no cubría. Se cambió a **`Exception` genérica** para asegurar el reporte en la interfaz.
+- **Redundancia de Jackson en GestorJson:** NetBeans marcaba error al intentar capturar una excepción no detectada por el compilador. Se unificó el bloque en un `try-catch` de `Exception` para englobar fallos de serialización y de sistema.
+- **Recuperabilidad del Botón:** El botón de descarga quedaba desactivado si ocurría un error antes de iniciar el Worker. Se añadió la reactivación del botón en el bloque `catch`.
+- **Persistencia de Trazas:** Se implementó la clase **`LoggerError`** para evitar que los errores críticos se perdieran al cerrar la consola, volcándolos al archivo físico `error_log.txt`.
+
+### 4. Retos Técnicos de la Parte 2 (Polling)
 
 | Problema | Solución Implementada | Fuente Técnica |
 | :--- | :--- | :--- |
@@ -110,9 +133,8 @@ Esta fase se centró en la creación de un componente visual independiente (**Ja
 
 ## V. Instrucciones de Construcción y Próximos Pasos
 
-* **Requisitos:** JDK 25, Maven (configurado en el PATH).
+* **Requisitos:** JDK 24, Maven (configurado en el PATH).
 * **Construcción:** Clic derecho en el proyecto -> **Clean and Build**.
-* **Próximos Pasos:** El proyecto está listo para la implementación de la **Parte 2: Creación del Componente JavaBean de Polling** y la **Parte 3: Integración**.
 
 # VidForge Downloader (Entrega Final)
 

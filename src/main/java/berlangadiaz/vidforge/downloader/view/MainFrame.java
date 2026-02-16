@@ -357,21 +357,27 @@ public class MainFrame extends javax.swing.JFrame {
      */
     public Usuari attemptLogin(String email, String password) throws Exception {
         // CAMBIO AQUÍ: Usamos el wrapper del componente en lugar de pedir el cliente al panel
-        // Antes: ApiClient client = mainViewPanel.getApiClient();
+        try {
+            String token = diMediaNetPoller.login(email, password); // (Usamos el Wrapper)
 
-        String token = diMediaNetPoller.login(email, password); // <--- NUEVO (Usamos el Wrapper)
+            if (token != null && !token.isBlank()) {
+                // Usamos el wrapper para obtener los datos del usuario
+                Usuari user = diMediaNetPoller.getMe(token);
 
-        if (token != null && !token.isBlank()) {
-            // CAMBIO AQUÍ: También usamos el wrapper para obtener los datos del usuario
-            Usuari user = diMediaNetPoller.getMe(token);
-
-            if (user != null) {
-                this.currentJwtToken = token;
-                this.currentUser = user;
-                return user;
+                if (user != null) {
+                    this.currentJwtToken = token;
+                    this.currentUser = user;
+                    return user;
+                }
             }
+            throw new IOException("Fallo de autenticación o datos de usuario incorrectos.");
+        } catch (Exception e) {
+            // Registramos el intento fallido con el email para auditoría de errores
+            berlangadiaz.vidforge.downloader.model.LoggerError.log("Fallo en intento de login para: " + email, e);
+
+            // Re-lanzamos para que el LoginPanel muestre el JOptionPane al usuario
+            throw e;
         }
-        throw new IOException("Fallo de autenticación o datos de usuario incorrectos.");
     }
 
     /**
@@ -505,17 +511,21 @@ public class MainFrame extends javax.swing.JFrame {
             gestorReal.guardarConfiguracion(ytDlp, guardado, m3u, limite);
             // Guardamos el "redireccionado" del json para recordar al reiniciar 
             // Esto sirve para que al abrir la app sepa ir al paso 1.
-            if (!guardado.equals(System.getProperty("user.home"))){
+            if (!guardado.equals(System.getProperty("user.home"))) {
                 GestorJson gestorPointer = new GestorJson(System.getProperty("user.home"));
                 gestorPointer.guardarConfiguracion(ytDlp, guardado, m3u, limite);
             }
-        } catch (IOException e) { // Usamos Exception para simplificar y capturar cualquier error de guardado
+        } catch (IOException e) {
+            // 1. Log del error para el archivo de texto
+            berlangadiaz.vidforge.downloader.model.LoggerError.log("Error crítico al guardar la configuración en disco", e);
+
+            // 2. Feedback visual
             JOptionPane.showMessageDialog(this,
-                    "Error al guardar las preferencias. El archivo config.json no se pudo escribir: " + e.getMessage(),
-                    "Error de Persistencia", JOptionPane.ERROR_MESSAGE);
+                    "No se pudo guardar la configuración.\n" + e.getMessage(),
+                    "Error de Archivo", JOptionPane.ERROR_MESSAGE);
         }
     }
- 
+
     /*Determina el comando yt-dlp por defecto basado en el Sistema Operativo
     *Esto asume que el usuario ha instalado la herramienta en su PATH
     *

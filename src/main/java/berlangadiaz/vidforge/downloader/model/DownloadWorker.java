@@ -115,39 +115,52 @@ public class DownloadWorker extends SwingWorker<String, String> {
         for (String line : chunks) {
             txtLog.append(line + "\n");
             
-            // --- Lógica de la Barra de Progreso ---
+            // --- Lógica de la Barra de Progreso y Mensajes de Estado ---
             try {
                 String percStr = null;
+                
                 if (line.contains("[download]") && line.contains("%")) {
-                    int pEnd = line.indexOf("%"); int pStart = line.lastIndexOf(" ", pEnd) + 1; percStr = line.substring(pStart, pEnd);
-                } else if (line.contains("[ExtractAudio]") && line.contains("%")) {
-                    int pEnd = line.indexOf("%");
-                    int pStart = line.lastIndexOf(" ", pEnd);
-                    if (pStart == -1) pStart = line.lastIndexOf(":", pEnd);
-                    percStr = line.substring(pStart + 1, pEnd);
+                    // CAMBIO: Actualizamos el estado a "Descargando"
+                    mainView.setEstadoLabel("Descargando archivo... " ); 
+                    
+                    int pEnd = line.indexOf("%"); 
+                    int pStart = line.lastIndexOf(" ", pEnd) + 1; 
+                    percStr = line.substring(pStart, pEnd);
+                    
+                } else if (line.contains("[ExtractAudio]")) {
+                    // CAMBIO: Detectamos conversión de audio
+                    mainView.setEstadoLabel("Extrayendo y convirtiendo audio...");
+                    
+                    if (line.contains("%")) {
+                        int pEnd = line.indexOf("%");
+                        int pStart = line.lastIndexOf(" ", pEnd);
+                        if (pStart == -1) pStart = line.lastIndexOf(":", pEnd);
+                        percStr = line.substring(pStart + 1, pEnd);
+                    }
+                } else if (line.contains("[Merger]")) {
+                    // CAMBIO: Detectamos fusión de video y audio
+                    mainView.setEstadoLabel("Fusionando pistas de vídeo y audio...");
                 }
+
                 if (percStr != null) { 
                     double percDouble = Double.parseDouble(percStr.trim());
-                    int percInt = (int) percDouble; progressBar.setValue(percInt); }
-            } catch (Exception e) { /* Ignorar error de parseo */ 
-            }
+                    int percInt = (int) percDouble; 
+                    progressBar.setValue(percInt); 
+                }
+            } catch (Exception e) { /* Ignorar error de parseo */ }
 
-            // --- Lógica de Capturar Ruta Final ---
+            // --- Tu lógica existente de Capturar Ruta Final ---
             try {
                 if (line.contains("[Merger] Merging formats into")) {
                     int start = line.indexOf("\"") + 1; int end = line.lastIndexOf("\"");
-                    // Usa el método 'setter' público del MainViewPanel
                     mainView.setUltimoArchivoDescargado(line.substring(start, end)); 
+                    mainView.setEstadoLabel("¡Fusión completada!");
                 } else if (line.contains("[ExtractAudio] Destination:")) {
                     int start = line.indexOf("Destination:") + "Destination:".length();
                     mainView.setUltimoArchivoDescargado(line.substring(start).trim());
-                } else if (line.contains("[download] Destination:") && !line.contains("ExtractAudio")) {
-                    if (mainView.getUltimoArchivoDescargado().isEmpty()) { // Necesitamos un 'getter'
-                        int start = line.indexOf("Destination:") + "Destination:".length();
-                        mainView.setUltimoArchivoDescargado(line.substring(start).trim());
-                    }
+                    mainView.setEstadoLabel("¡Conversión finalizada!");
                 }
-            } catch (Exception e) { /* Ignorar error de parseo */ }
+            } catch (Exception e) { }
         }
     }
 
