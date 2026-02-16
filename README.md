@@ -69,6 +69,7 @@ Esta sección detalla las mejoras aplicadas siguientes:
 * **Affordance:** Uso de `HAND_CURSOR` en botones para indicar interactividad.
 * **Feedback:** Implementación de `JOptionPane` informativos y barras de progreso activas durante la descarga.
 * **Restricciones:** Bloqueo dinámico del botón de descarga para evitar duplicidad de procesos.
+* **Feedback Contextual Dinámico en la barra de progreso** El sistema no solo muestra el progreso mediante la barra, sino que informa textualmente de la fase del proceso (Descargando, Fusionando). Para eliminar la incertidumbre del usuario ante las variaciones de velocidad o reinicios de la barra de progreso.
 
 ### III.C Gestión de Errores y Registro de Logs
 * **Logs on Application Crash:** Implementación de la clase `LoggerError` para persistir fallos en `error_log.txt`.
