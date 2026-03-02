@@ -54,9 +54,10 @@ public class PreferenciasPanel extends javax.swing.JPanel {
             }
         });
         add(txtRutaYtDlp);
-        txtRutaYtDlp.setBounds(120, 80, 450, 23);
+        txtRutaYtDlp.setBounds(120, 80, 450, 22);
 
         btnBuscarTemporales.setText("...");
+        btnBuscarTemporales.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         btnBuscarTemporales.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnBuscarTemporalesActionPerformed(evt);
@@ -66,19 +67,21 @@ public class PreferenciasPanel extends javax.swing.JPanel {
         btnBuscarTemporales.setBounds(570, 120, 40, 23);
 
         chkCrearM3u.setText("Crear .m3u para listas");
+        chkCrearM3u.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         chkCrearM3u.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 chkCrearM3uActionPerformed(evt);
             }
         });
         add(chkCrearM3u);
-        chkCrearM3u.setBounds(20, 160, 160, 21);
+        chkCrearM3u.setBounds(20, 160, 160, 20);
 
         jLabel2.setText("Límite de velocidad de Descarga (ej. 500K):");
         add(jLabel2);
         jLabel2.setBounds(20, 190, 260, 30);
 
         btnVolver.setText("Guardar y Volver");
+        btnVolver.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         btnVolver.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnVolverActionPerformed(evt);
@@ -88,6 +91,7 @@ public class PreferenciasPanel extends javax.swing.JPanel {
         btnVolver.setBounds(170, 270, 260, 70);
 
         btnBuscarYtDlp.setText("...");
+        btnBuscarYtDlp.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         btnBuscarYtDlp.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnBuscarYtDlpActionPerformed(evt);
@@ -100,9 +104,11 @@ public class PreferenciasPanel extends javax.swing.JPanel {
         add(jLabel3);
         jLabel3.setBounds(20, 120, 180, 20);
         add(txtRutaTemporales);
-        txtRutaTemporales.setBounds(200, 120, 370, 23);
+        txtRutaTemporales.setBounds(200, 120, 370, 22);
+
+        spinnerLimite.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         add(spinnerLimite);
-        spinnerLimite.setBounds(280, 190, 64, 23);
+        spinnerLimite.setBounds(280, 190, 64, 22);
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnBuscarTemporalesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarTemporalesActionPerformed

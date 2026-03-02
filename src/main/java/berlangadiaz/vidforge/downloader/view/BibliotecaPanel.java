@@ -115,17 +115,23 @@ public class BibliotecaPanel extends javax.swing.JPanel {
         // Borde para que se vean los botones de abajo
         panelAcciones.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
         // 1. Ajustar anchos de columnas
-        if (tablaArchivos.getColumnCount() >= 4) {
-            // Columna 1 (Nombre): Le dejamos que se expanda lo que quiera
-            tablaArchivos.getColumnModel().getColumn(1).setPreferredWidth(300);
+        if (tablaArchivos.getColumnCount() >= 5) {
+            // Columna 0 (Icono): Ya está a 40px más arriba
             
-            // Columna 2 (Tamaño): Fija y pequeña
-            tablaArchivos.getColumnModel().getColumn(2).setMinWidth(80);
-            tablaArchivos.getColumnModel().getColumn(2).setMaxWidth(100);
+            // Columna 1 (Nombre): Le damos mucho espacio (evita text overflow)
+            tablaArchivos.getColumnModel().getColumn(1).setPreferredWidth(450); 
             
-            // Columna 3 (Fecha): Fija y mediana
-            tablaArchivos.getColumnModel().getColumn(3).setMinWidth(120);
-            tablaArchivos.getColumnModel().getColumn(3).setMaxWidth(150);
+            // Columna 2 (Tamaño): Estrecha
+            tablaArchivos.getColumnModel().getColumn(2).setMinWidth(70);
+            tablaArchivos.getColumnModel().getColumn(2).setMaxWidth(90);
+            
+            // Columna 3 (Fecha): Mediana
+            tablaArchivos.getColumnModel().getColumn(3).setMinWidth(110);
+            tablaArchivos.getColumnModel().getColumn(3).setMaxWidth(130);
+            
+            // Columna 4 (Tipo MIME): Estrecha
+            tablaArchivos.getColumnModel().getColumn(4).setMinWidth(80);
+            tablaArchivos.getColumnModel().getColumn(4).setMaxWidth(100);
         }
 
         // 2. Renderer con TOOLTIPS (Para leer texto cortado al pasar el ratón)
@@ -366,6 +372,7 @@ public class BibliotecaPanel extends javax.swing.JPanel {
         panelAcciones.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
         btnActualizar.setText("Actualizar Lista");
+        btnActualizar.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         btnActualizar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnActualizarActionPerformed(evt);
@@ -374,6 +381,7 @@ public class BibliotecaPanel extends javax.swing.JPanel {
         panelAcciones.add(btnActualizar);
 
         btnBorrar.setText("Borrar Seleccionado:");
+        btnBorrar.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         btnBorrar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnBorrarActionPerformed(evt);

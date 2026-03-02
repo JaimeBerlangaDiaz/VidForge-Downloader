@@ -165,17 +165,12 @@ public class LoginPanel extends JPanel implements ActionListener {
                     } else {
                         GestorJson.clearToken();
                     }
-
                     // 3. Cambiar a la vista principal (EDT)
-                    final Usuari finalUser = usuarioLogueado;
                     SwingUtilities.invokeLater(() -> {
-                        JOptionPane.showMessageDialog(this,
-                                // ¡CORRECCIÓN! Acceder directamente al campo público
-                                "¡Login exitoso! Bienvenido, " + finalUser.nickName + ".",
-                                "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                        // Al quitar el mensaje emergente, el usuario sabe que
+                        // ha entrado bien porque la pantalla cambia sola.
                         parentFrame.mostrarVistaPrincipal();
                     });
-
                 } else {
                     // Esto solo debería ocurrir si attemptLogin devolvió null, lo cual lanza excepción.
                     // Pero lo dejo como doble chequeo.

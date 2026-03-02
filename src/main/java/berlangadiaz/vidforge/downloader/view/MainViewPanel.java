@@ -183,11 +183,11 @@ public class MainViewPanel extends javax.swing.JPanel {
 
         jLabel1.setText("Url del Vídeo:");
         add(jLabel1);
-        jLabel1.setBounds(20, 30, 80, 20);
+        jLabel1.setBounds(20, 50, 80, 30);
 
         txtUrl.setToolTipText("Pega Aquí la URL del Vídeo");
         add(txtUrl);
-        txtUrl.setBounds(100, 30, 440, 22);
+        txtUrl.setBounds(20, 82, 720, 30);
 
         chkSoloAudio.setText("Descargar solo audio (mp3)");
         chkSoloAudio.addActionListener(new java.awt.event.ActionListener() {
@@ -196,12 +196,12 @@ public class MainViewPanel extends javax.swing.JPanel {
             }
         });
         add(chkSoloAudio);
-        chkSoloAudio.setBounds(20, 70, 190, 20);
+        chkSoloAudio.setBounds(20, 110, 190, 30);
 
         buttonGroup1.add(rbVideo1080);
         rbVideo1080.setText("1080p");
         add(rbVideo1080);
-        rbVideo1080.setBounds(270, 130, 80, 20);
+        rbVideo1080.setBounds(270, 190, 80, 20);
 
         buttonGroup1.add(rbVideoMejor);
         rbVideoMejor.setSelected(true);
@@ -212,7 +212,7 @@ public class MainViewPanel extends javax.swing.JPanel {
             }
         });
         add(rbVideoMejor);
-        rbVideoMejor.setBounds(130, 130, 130, 21);
+        rbVideoMejor.setBounds(130, 190, 130, 21);
 
         btnDescargar.setText("Descargar");
         btnDescargar.setToolTipText("Haz clic para iniciar la descarga ! ");
@@ -223,31 +223,32 @@ public class MainViewPanel extends javax.swing.JPanel {
             }
         });
         add(btnDescargar);
-        btnDescargar.setBounds(10, 260, 260, 40);
+        btnDescargar.setBounds(20, 290, 260, 50);
 
         txtLog.setColumns(20);
         txtLog.setRows(5);
         jScrollPane1.setViewportView(txtLog);
 
         add(jScrollPane1);
-        jScrollPane1.setBounds(10, 300, 590, 130);
+        jScrollPane1.setBounds(20, 380, 720, 170);
 
         btnAbrirVideo.setText("Reproducir último archivo descargado");
+        btnAbrirVideo.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         btnAbrirVideo.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnAbrirVideoActionPerformed(evt);
             }
         });
         add(btnAbrirVideo);
-        btnAbrirVideo.setBounds(10, 430, 290, 23);
+        btnAbrirVideo.setBounds(20, 560, 290, 40);
 
         progressBar.setStringPainted(true);
         add(progressBar);
-        progressBar.setBounds(270, 260, 330, 20);
+        progressBar.setBounds(20, 350, 720, 20);
 
         jLabel2.setText("Calidad de Video:");
         add(jLabel2);
-        jLabel2.setBounds(20, 120, 110, 30);
+        jLabel2.setBounds(20, 180, 110, 30);
 
         buttonGroup1.add(rbVideo720);
         rbVideo720.setText("720p");
@@ -257,32 +258,32 @@ public class MainViewPanel extends javax.swing.JPanel {
             }
         });
         add(rbVideo720);
-        rbVideo720.setBounds(350, 130, 70, 21);
+        rbVideo720.setBounds(360, 190, 70, 21);
 
         jLabel3.setText("Calidad de Audio (solo si es mp3):");
         add(jLabel3);
-        jLabel3.setBounds(20, 100, 210, 16);
+        jLabel3.setBounds(20, 146, 210, 30);
 
         buttonGroup2.add(rbAudioBuena);
         rbAudioBuena.setSelected(true);
         rbAudioBuena.setText("Buena (192kbps)");
         add(rbAudioBuena);
-        rbAudioBuena.setBounds(240, 100, 130, 21);
+        rbAudioBuena.setBounds(230, 150, 130, 21);
 
         buttonGroup2.add(rbAudioNormal);
         rbAudioNormal.setText("Normal (128kbps)");
         add(rbAudioNormal);
-        rbAudioNormal.setBounds(390, 100, 130, 21);
+        rbAudioNormal.setBounds(370, 150, 130, 21);
 
         jLabel4.setText("Formato de Salida: ");
         add(jLabel4);
-        jLabel4.setBounds(20, 160, 130, 40);
+        jLabel4.setBounds(20, 210, 130, 40);
 
         cmbFormato.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "mp4", "mkv", "webm", "mp3" }));
         add(cmbFormato);
-        cmbFormato.setBounds(160, 170, 72, 22);
+        cmbFormato.setBounds(20, 250, 100, 22);
         add(lblStatus);
-        lblStatus.setBounds(270, 280, 330, 20);
+        lblStatus.setBounds(290, 300, 450, 40);
     }// </editor-fold>//GEN-END:initComponents
 
     private void chkSoloAudioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkSoloAudioActionPerformed
