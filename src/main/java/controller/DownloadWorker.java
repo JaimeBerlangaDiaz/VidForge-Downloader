@@ -1,6 +1,9 @@
-package berlangadiaz.vidforge.downloader.model;
+package controller;
 
 // Imports necesarios
+import persistence.GestorJson;
+import utils.LoggerError;
+import berlangadiaz.vidforge.downloader.model.MediaFile;
 import berlangadiaz.vidforge.downloader.view.BibliotecaPanel;
 import berlangadiaz.vidforge.downloader.view.MainFrame;
 import berlangadiaz.vidforge.downloader.view.MainViewPanel;
@@ -217,23 +220,8 @@ public class DownloadWorker extends SwingWorker<String, String> {
                     }
                 }
 
-                // --- PREPARAR EL ICONO PARA EL DIÁLOGO EMERGENTE ---
-                ImageIcon successIcon = null;
-                try {
-                    // Lógica de carga y redimensionado del icono
-                    java.net.URL imageUrl = Thread.currentThread().getContextClassLoader().getResource("images/success_icon.png");
-                    if (imageUrl != null) {
-                        successIcon = new ImageIcon(imageUrl);
-                        java.awt.Image img = successIcon.getImage().getScaledInstance(32, 32, java.awt.Image.SCALE_SMOOTH);
-                        successIcon = new ImageIcon(img);
-                    }
-                } catch (Exception e) {
-                    System.err.println("Error al preparar icono para JOptionPane: " + e.getMessage());
-                }
-
-                // --- MOSTRAR DIÁLOGO ---
-                JOptionPane.showMessageDialog(mainView, resultado,
-                        "Descarga Completada", JOptionPane.INFORMATION_MESSAGE, successIcon);
+                // --- MOSTRAR MENSAJE SUTIL EN LA INTERFAZ ---
+                mainView.setEstadoLabel("¡Descarga completada con éxito!");
 
             } else {
                 // Si falla la descarga

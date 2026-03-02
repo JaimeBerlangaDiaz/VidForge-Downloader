@@ -1,5 +1,6 @@
-package berlangadiaz.vidforge.downloader.model;
+package berlangadiaz.vidforge.downloader.view;
 
+import berlangadiaz.vidforge.downloader.model.MediaFile;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

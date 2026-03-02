@@ -1,4 +1,4 @@
-package berlangadiaz.vidforge.downloader.model;
+package utils;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter;
 public class LoggerError {
     
     // Nombre del archivo que aparecerá en la raíz de tu proyecto
-    private static final String FILE_NAME = "error_log.txt";
+    private static final String FILE_NAME = System.getProperty("user.home") + java.io.File.separator + "VidForge_error_log.txt";
 
     /**
      * Escribe un error en el archivo log.

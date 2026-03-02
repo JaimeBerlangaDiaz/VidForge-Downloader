@@ -1,4 +1,4 @@
-package berlangadiaz.vidforge.downloader.model;
+package berlangadiaz.vidforge.downloader.view;
 
 /**
  * Clase "Objeto" para el JComboBox de ordenar (Tarea 2).

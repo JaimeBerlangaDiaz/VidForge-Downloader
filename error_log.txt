@@ -1,0 +1,144 @@
+=== REPORTE DE ERROR [24/02/2026 14:13:27] ===
+CONTEXTO: Fallo en intento de login para: a@b.c
+MENSAJE DE EXCEPCIÓN: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-1961d16bd898b32cfff6a2c71f47f15d-fe0af7030bc2842b-00"}
+TRAZA COMPLETA:
+java.io.IOException: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-1961d16bd898b32cfff6a2c71f47f15d-fe0af7030bc2842b-00"}
+	at com.berlangadiaz.dimedianet.api.ApiClient.login(ApiClient.java:66)
+	at com.berlangadiaz.dimedianet.component.DiMediaLink.login(DiMediaLink.java:127)
+	at berlangadiaz.vidforge.downloader.view.MainFrame.attemptLogin(MainFrame.java:361)
+	at berlangadiaz.vidforge.downloader.view.LoginPanel.lambda$handleLoginAttempt$0(LoginPanel.java:155)
+	at java.base/java.lang.Thread.run(Thread.java:1447)
+=========================================================
+
+=== REPORTE DE ERROR [24/02/2026 14:13:27] ===
+CONTEXTO: Fallo en el intento de autenticación del usuario: a@b.c
+MENSAJE DE EXCEPCIÓN: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-1961d16bd898b32cfff6a2c71f47f15d-fe0af7030bc2842b-00"}
+TRAZA COMPLETA:
+java.io.IOException: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-1961d16bd898b32cfff6a2c71f47f15d-fe0af7030bc2842b-00"}
+	at com.berlangadiaz.dimedianet.api.ApiClient.login(ApiClient.java:66)
+	at com.berlangadiaz.dimedianet.component.DiMediaLink.login(DiMediaLink.java:127)
+	at berlangadiaz.vidforge.downloader.view.MainFrame.attemptLogin(MainFrame.java:361)
+	at berlangadiaz.vidforge.downloader.view.LoginPanel.lambda$handleLoginAttempt$0(LoginPanel.java:155)
+	at java.base/java.lang.Thread.run(Thread.java:1447)
+=========================================================
+
+=== REPORTE DE ERROR [24/02/2026 14:13:33] ===
+CONTEXTO: Fallo en intento de login para: a@b.c
+MENSAJE DE EXCEPCIÓN: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-cdf9fe62389e33d0e31ec081cb9c914e-e80594ca332acb51-00"}
+TRAZA COMPLETA:
+java.io.IOException: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-cdf9fe62389e33d0e31ec081cb9c914e-e80594ca332acb51-00"}
+	at com.berlangadiaz.dimedianet.api.ApiClient.login(ApiClient.java:66)
+	at com.berlangadiaz.dimedianet.component.DiMediaLink.login(DiMediaLink.java:127)
+	at berlangadiaz.vidforge.downloader.view.MainFrame.attemptLogin(MainFrame.java:361)
+	at berlangadiaz.vidforge.downloader.view.LoginPanel.lambda$handleLoginAttempt$0(LoginPanel.java:155)
+	at java.base/java.lang.Thread.run(Thread.java:1447)
+=========================================================
+
+=== REPORTE DE ERROR [24/02/2026 14:13:33] ===
+CONTEXTO: Fallo en el intento de autenticación del usuario: a@b.c
+MENSAJE DE EXCEPCIÓN: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-cdf9fe62389e33d0e31ec081cb9c914e-e80594ca332acb51-00"}
+TRAZA COMPLETA:
+java.io.IOException: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-cdf9fe62389e33d0e31ec081cb9c914e-e80594ca332acb51-00"}
+	at com.berlangadiaz.dimedianet.api.ApiClient.login(ApiClient.java:66)
+	at com.berlangadiaz.dimedianet.component.DiMediaLink.login(DiMediaLink.java:127)
+	at berlangadiaz.vidforge.downloader.view.MainFrame.attemptLogin(MainFrame.java:361)
+	at berlangadiaz.vidforge.downloader.view.LoginPanel.lambda$handleLoginAttempt$0(LoginPanel.java:155)
+	at java.base/java.lang.Thread.run(Thread.java:1447)
+=========================================================
+
+=== REPORTE DE ERROR [24/02/2026 14:14:05] ===
+CONTEXTO: Fallo en intento de login para: a@b.c
+MENSAJE DE EXCEPCIÓN: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-dbe8f311f4b846ce92fbc6487902156e-1335bfd8187d6d71-00"}
+TRAZA COMPLETA:
+java.io.IOException: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-dbe8f311f4b846ce92fbc6487902156e-1335bfd8187d6d71-00"}
+	at com.berlangadiaz.dimedianet.api.ApiClient.login(ApiClient.java:66)
+	at com.berlangadiaz.dimedianet.component.DiMediaLink.login(DiMediaLink.java:127)
+	at berlangadiaz.vidforge.downloader.view.MainFrame.attemptLogin(MainFrame.java:361)
+	at berlangadiaz.vidforge.downloader.view.LoginPanel.lambda$handleLoginAttempt$0(LoginPanel.java:155)
+	at java.base/java.lang.Thread.run(Thread.java:1447)
+=========================================================
+
+=== REPORTE DE ERROR [24/02/2026 14:14:05] ===
+CONTEXTO: Fallo en el intento de autenticación del usuario: a@b.c
+MENSAJE DE EXCEPCIÓN: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-dbe8f311f4b846ce92fbc6487902156e-1335bfd8187d6d71-00"}
+TRAZA COMPLETA:
+java.io.IOException: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-dbe8f311f4b846ce92fbc6487902156e-1335bfd8187d6d71-00"}
+	at com.berlangadiaz.dimedianet.api.ApiClient.login(ApiClient.java:66)
+	at com.berlangadiaz.dimedianet.component.DiMediaLink.login(DiMediaLink.java:127)
+	at berlangadiaz.vidforge.downloader.view.MainFrame.attemptLogin(MainFrame.java:361)
+	at berlangadiaz.vidforge.downloader.view.LoginPanel.lambda$handleLoginAttempt$0(LoginPanel.java:155)
+	at java.base/java.lang.Thread.run(Thread.java:1447)
+=========================================================
+
+=== REPORTE DE ERROR [24/02/2026 14:14:22] ===
+CONTEXTO: Fallo en intento de login para: jaimeberlanga@paucasesnovescifp.cat
+MENSAJE DE EXCEPCIÓN: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-082f4eed4bedf35cfe40ba0d394bde90-f63a36cba0e0995f-00"}
+TRAZA COMPLETA:
+java.io.IOException: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-082f4eed4bedf35cfe40ba0d394bde90-f63a36cba0e0995f-00"}
+	at com.berlangadiaz.dimedianet.api.ApiClient.login(ApiClient.java:66)
+	at com.berlangadiaz.dimedianet.component.DiMediaLink.login(DiMediaLink.java:127)
+	at berlangadiaz.vidforge.downloader.view.MainFrame.attemptLogin(MainFrame.java:361)
+	at berlangadiaz.vidforge.downloader.view.LoginPanel.lambda$handleLoginAttempt$0(LoginPanel.java:155)
+	at java.base/java.lang.Thread.run(Thread.java:1447)
+=========================================================
+
+=== REPORTE DE ERROR [24/02/2026 14:14:22] ===
+CONTEXTO: Fallo en el intento de autenticación del usuario: jaimeberlanga@paucasesnovescifp.cat
+MENSAJE DE EXCEPCIÓN: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-082f4eed4bedf35cfe40ba0d394bde90-f63a36cba0e0995f-00"}
+TRAZA COMPLETA:
+java.io.IOException: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-082f4eed4bedf35cfe40ba0d394bde90-f63a36cba0e0995f-00"}
+	at com.berlangadiaz.dimedianet.api.ApiClient.login(ApiClient.java:66)
+	at com.berlangadiaz.dimedianet.component.DiMediaLink.login(DiMediaLink.java:127)
+	at berlangadiaz.vidforge.downloader.view.MainFrame.attemptLogin(MainFrame.java:361)
+	at berlangadiaz.vidforge.downloader.view.LoginPanel.lambda$handleLoginAttempt$0(LoginPanel.java:155)
+	at java.base/java.lang.Thread.run(Thread.java:1447)
+=========================================================
+
+=== REPORTE DE ERROR [24/02/2026 14:14:25] ===
+CONTEXTO: Fallo en intento de login para: jaimeberlanga@paucasesnovescifp.cat
+MENSAJE DE EXCEPCIÓN: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-43d8e214db4c4dcf50694f0ebf3da6a0-8abcb681bf7af5c9-00"}
+TRAZA COMPLETA:
+java.io.IOException: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-43d8e214db4c4dcf50694f0ebf3da6a0-8abcb681bf7af5c9-00"}
+	at com.berlangadiaz.dimedianet.api.ApiClient.login(ApiClient.java:66)
+	at com.berlangadiaz.dimedianet.component.DiMediaLink.login(DiMediaLink.java:127)
+	at berlangadiaz.vidforge.downloader.view.MainFrame.attemptLogin(MainFrame.java:361)
+	at berlangadiaz.vidforge.downloader.view.LoginPanel.lambda$handleLoginAttempt$0(LoginPanel.java:155)
+	at java.base/java.lang.Thread.run(Thread.java:1447)
+=========================================================
+
+=== REPORTE DE ERROR [24/02/2026 14:14:25] ===
+CONTEXTO: Fallo en el intento de autenticación del usuario: jaimeberlanga@paucasesnovescifp.cat
+MENSAJE DE EXCEPCIÓN: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-43d8e214db4c4dcf50694f0ebf3da6a0-8abcb681bf7af5c9-00"}
+TRAZA COMPLETA:
+java.io.IOException: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-43d8e214db4c4dcf50694f0ebf3da6a0-8abcb681bf7af5c9-00"}
+	at com.berlangadiaz.dimedianet.api.ApiClient.login(ApiClient.java:66)
+	at com.berlangadiaz.dimedianet.component.DiMediaLink.login(DiMediaLink.java:127)
+	at berlangadiaz.vidforge.downloader.view.MainFrame.attemptLogin(MainFrame.java:361)
+	at berlangadiaz.vidforge.downloader.view.LoginPanel.lambda$handleLoginAttempt$0(LoginPanel.java:155)
+	at java.base/java.lang.Thread.run(Thread.java:1447)
+=========================================================
+
+=== REPORTE DE ERROR [24/02/2026 14:14:28] ===
+CONTEXTO: Fallo en intento de login para: jaimeberlanga@paucasesnovescifp.cat
+MENSAJE DE EXCEPCIÓN: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-19ea42eab94c7a8b29024359e9f2d22d-74f6569270193371-00"}
+TRAZA COMPLETA:
+java.io.IOException: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-19ea42eab94c7a8b29024359e9f2d22d-74f6569270193371-00"}
+	at com.berlangadiaz.dimedianet.api.ApiClient.login(ApiClient.java:66)
+	at com.berlangadiaz.dimedianet.component.DiMediaLink.login(DiMediaLink.java:127)
+	at berlangadiaz.vidforge.downloader.view.MainFrame.attemptLogin(MainFrame.java:361)
+	at berlangadiaz.vidforge.downloader.view.LoginPanel.lambda$handleLoginAttempt$0(LoginPanel.java:155)
+	at java.base/java.lang.Thread.run(Thread.java:1447)
+=========================================================
+
+=== REPORTE DE ERROR [24/02/2026 14:14:28] ===
+CONTEXTO: Fallo en el intento de autenticación del usuario: jaimeberlanga@paucasesnovescifp.cat
+MENSAJE DE EXCEPCIÓN: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-19ea42eab94c7a8b29024359e9f2d22d-74f6569270193371-00"}
+TRAZA COMPLETA:
+java.io.IOException: Login failed: 401 -> {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-19ea42eab94c7a8b29024359e9f2d22d-74f6569270193371-00"}
+	at com.berlangadiaz.dimedianet.api.ApiClient.login(ApiClient.java:66)
+	at com.berlangadiaz.dimedianet.component.DiMediaLink.login(DiMediaLink.java:127)
+	at berlangadiaz.vidforge.downloader.view.MainFrame.attemptLogin(MainFrame.java:361)
+	at berlangadiaz.vidforge.downloader.view.LoginPanel.lambda$handleLoginAttempt$0(LoginPanel.java:155)
+	at java.base/java.lang.Thread.run(Thread.java:1447)
+=========================================================
+

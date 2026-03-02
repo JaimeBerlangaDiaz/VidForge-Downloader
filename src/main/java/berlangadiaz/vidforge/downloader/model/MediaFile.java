@@ -55,7 +55,7 @@ public class MediaFile {
 
             } catch (IOException e) {
                 // Log para el archivo de texto
-                berlangadiaz.vidforge.downloader.model.LoggerError.log("Error al leer atributos físicos del archivo: " + this.nombre, e);
+                utils.LoggerError.log("Error al leer atributos físicos del archivo: " + this.nombre, e);
 
                 this.tipoMime = "desconocido";
                 this.fechaCreacionMs = System.currentTimeMillis();

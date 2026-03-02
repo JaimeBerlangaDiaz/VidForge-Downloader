@@ -4,9 +4,9 @@
  */
 package berlangadiaz.vidforge.downloader.view;
 
-import berlangadiaz.vidforge.downloader.model.DownloadWorker;
-import berlangadiaz.vidforge.downloader.model.GestorJson;
-import berlangadiaz.vidforge.downloader.model.LoggerError;
+import controller.DownloadWorker;
+import persistence.GestorJson;
+import utils.LoggerError;
 import berlangadiaz.vidforge.downloader.model.MediaFile;
 import com.berlangadiaz.dimedianet.api.ApiClient;
 import javax.swing.SwingUtilities;

@@ -1,6 +1,6 @@
 package berlangadiaz.vidforge.downloader.view;
 
-import berlangadiaz.vidforge.downloader.model.GestorJson;
+import persistence.GestorJson;
 import com.berlangadiaz.dimedianet.api.Media;
 import com.berlangadiaz.dimedianet.api.Usuari;
 import com.berlangadiaz.dimedianet.api.ApiClient;
@@ -142,6 +142,7 @@ public class MainFrame extends javax.swing.JFrame {
         itemPreferencias = new javax.swing.JMenuItem();
         menuAyuda = new javax.swing.JMenu();
         itemAcerdaDe = new javax.swing.JMenuItem();
+        itemVerLogs = new javax.swing.JMenuItem();
 
         jMenu3.setText("File");
         jMenuBar2.add(jMenu3);
@@ -235,6 +236,14 @@ public class MainFrame extends javax.swing.JFrame {
         });
         menuAyuda.add(itemAcerdaDe);
 
+        itemVerLogs.setText("Ver Registro de Errores (Logs)");
+        itemVerLogs.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                itemVerLogsActionPerformed(evt);
+            }
+        });
+        menuAyuda.add(itemVerLogs);
+
         jMenuBar1.add(menuAyuda);
 
         setJMenuBar(jMenuBar1);
@@ -325,6 +334,31 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_diMediaNetPollerOnNewMediaFound
 
+    private void itemVerLogsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemVerLogsActionPerformed
+        try {
+            // 1. Buscamos el archivo en la misma ruta exacta que configuramos antes
+            String rutaLog = System.getProperty("user.home") + java.io.File.separator + "VidForge_error_log.txt";
+            java.io.File archivoLog = new java.io.File(rutaLog);
+
+            // 2. Comprobamos si el archivo existe (es decir, si ha habido algún error alguna vez)
+            if (archivoLog.exists()) {
+                // 3. Le decimos a tu ordenador que lo abra automáticamente con el bloc de notas
+                java.awt.Desktop.getDesktop().open(archivoLog);
+            } else {
+                // 4. Si no existe, le damos una buena noticia al usuario
+                javax.swing.JOptionPane.showMessageDialog(this,
+                        "¡Todo está funcionando perfecto! Aún no hay registros de error en el sistema.",
+                        "Sin Errores",
+                        javax.swing.JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (Exception ex) {
+            javax.swing.JOptionPane.showMessageDialog(this,
+                    "No se pudo abrir el archivo de logs automáticamente.",
+                    "Error",
+                    javax.swing.JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_itemVerLogsActionPerformed
+
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -373,7 +407,7 @@ public class MainFrame extends javax.swing.JFrame {
             throw new IOException("Fallo de autenticación o datos de usuario incorrectos.");
         } catch (Exception e) {
             // Registramos el intento fallido con el email para auditoría de errores
-            berlangadiaz.vidforge.downloader.model.LoggerError.log("Fallo en intento de login para: " + email, e);
+            utils.LoggerError.log("Fallo en intento de login para: " + email, e);
 
             // Re-lanzamos para que el LoginPanel muestre el JOptionPane al usuario
             throw e;
@@ -517,7 +551,7 @@ public class MainFrame extends javax.swing.JFrame {
             }
         } catch (IOException e) {
             // 1. Log del error para el archivo de texto
-            berlangadiaz.vidforge.downloader.model.LoggerError.log("Error crítico al guardar la configuración en disco", e);
+            utils.LoggerError.log("Error crítico al guardar la configuración en disco", e);
 
             // 2. Feedback visual
             JOptionPane.showMessageDialog(this,
@@ -605,6 +639,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JMenuItem itemMostrarDescarga;
     private javax.swing.JMenuItem itemPreferencias;
     private javax.swing.JMenuItem itemSalir;
+    private javax.swing.JMenuItem itemVerLogs;
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenu jMenu4;
     private javax.swing.JMenu jMenu5;

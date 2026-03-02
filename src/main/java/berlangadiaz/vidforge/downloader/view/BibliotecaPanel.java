@@ -8,21 +8,13 @@ import java.util.Map;
 import java.util.HashMap;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.JLabel;
-import javax.swing.ImageIcon;
 import java.awt.Component;
 import javax.swing.JTable;
-import berlangadiaz.vidforge.downloader.model.MediaFileTableModel;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.JFileChooser;
-import javax.swing.JComboBox;
-import javax.swing.JList;
-import javax.swing.BorderFactory;
-import berlangadiaz.vidforge.downloader.model.GestorJson;
+import persistence.GestorJson;
 import berlangadiaz.vidforge.downloader.model.MediaFile;
-import berlangadiaz.vidforge.downloader.model.ColumnaOrden;
-import berlangadiaz.vidforge.downloader.model.TipoMimeFiltro;
 import java.io.IOException;
 import javax.swing.JOptionPane;
 
@@ -122,6 +114,45 @@ public class BibliotecaPanel extends javax.swing.JPanel {
         
         // Borde para que se vean los botones de abajo
         panelAcciones.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        // 1. Ajustar anchos de columnas
+        if (tablaArchivos.getColumnCount() >= 4) {
+            // Columna 1 (Nombre): Le dejamos que se expanda lo que quiera
+            tablaArchivos.getColumnModel().getColumn(1).setPreferredWidth(300);
+            
+            // Columna 2 (Tamaño): Fija y pequeña
+            tablaArchivos.getColumnModel().getColumn(2).setMinWidth(80);
+            tablaArchivos.getColumnModel().getColumn(2).setMaxWidth(100);
+            
+            // Columna 3 (Fecha): Fija y mediana
+            tablaArchivos.getColumnModel().getColumn(3).setMinWidth(120);
+            tablaArchivos.getColumnModel().getColumn(3).setMaxWidth(150);
+        }
+
+        // 2. Renderer con TOOLTIPS (Para leer texto cortado al pasar el ratón)
+        DefaultTableCellRenderer tooltipRenderer = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                if (value != null) {
+                    setToolTipText(value.toString());
+                }
+                return c;
+            }
+        };
+        // Aplicamos este renderer a las columnas de texto (1, 2 y 3)
+        for (int i = 1; i < tablaArchivos.getColumnCount(); i++) {
+            tablaArchivos.getColumnModel().getColumn(i).setCellRenderer(tooltipRenderer);
+        }
+
+        // 3. EVENTO DE DOBLE CLIC (Descargar de Nube o Abrir Local)
+        tablaArchivos.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                if (evt.getClickCount() == 2) { // Doble Clic detectado
+                    gestionarDobleClic();
+                }
+            }
+        });
     }
     
     // --- ESTE MÉTODO VA FUERA DEL CONSTRUCTOR, PERO DENTRO DE LA CLASE ---
@@ -177,7 +208,7 @@ public class BibliotecaPanel extends javax.swing.JPanel {
             }
         } catch (Exception ex) {
             // REGISTRO TÉCNICO 
-            berlangadiaz.vidforge.downloader.model.LoggerError.log("Fallo al intentar recargar los datos de la biblioteca", ex);
+            utils.LoggerError.log("Fallo al intentar recargar los datos de la biblioteca", ex);
 
             // FEEDBACK VISUAL
             JOptionPane.showMessageDialog(this,
@@ -468,7 +499,78 @@ public class BibliotecaPanel extends javax.swing.JPanel {
         //    SOLAMENTE la lista filtrada
         tableModel.setArchivos(listaFiltrada);        
     }//GEN-LAST:event_btnBuscarActionPerformed
+    /**
+     * Gestiona la acción al hacer doble clic en la tabla.
+     * - Si es LOCAL: Abre el archivo.
+     * - Si es REMOTO (Nube): Simula la descarga para sincronizarlo.
+     */
+    private void gestionarDobleClic() {
+        int row = tablaArchivos.getSelectedRow();
+        if (row == -1) return;
 
+        // Obtenemos el archivo seleccionado
+        MediaFile archivo = tableModel.getFileAt(row);
+        
+        // Consultamos su estado (Local, Remoto o Sincronizado)
+        // Necesitamos acceder al mapa de estados del modelo. 
+        // Si no tienes un método público 'getEstado(row)' en tu tableModel, 
+        // usaremos la lógica visual:
+        
+        File ficheroFisico = archivo.getFichero();
+        
+        if (ficheroFisico.exists()) {
+            // --- CASO 1: ARCHIVO LOCAL (Abrir) ---
+            try {
+                java.awt.Desktop.getDesktop().open(ficheroFisico);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "No se puede abrir el archivo: " + e.getMessage());
+            }
+        } else {
+            // --- CASO 2: ARCHIVO SOLO EN NUBE (Descargar) ---
+            int resp = JOptionPane.showConfirmDialog(this, 
+                    "El archivo '" + archivo.getNombre() + "' está solo en la nube.\n¿Quieres descargarlo ahora?",
+                    "Descargar de la Nube", JOptionPane.YES_NO_OPTION);
+            
+            if (resp == JOptionPane.YES_OPTION) {
+                descargarDeNube(archivo);
+            }
+        }
+    }
+
+    /**
+     * Simula la descarga de un archivo de la nube creando un fichero vacío 
+     * o copiando datos (dependiendo de si tu API real devuelve bytes).
+     * Para esta tarea, crearemos el archivo físico para que cambie de estado.
+     */
+    private void descargarDeNube(MediaFile archivoDummy) {
+        try {
+            // 1. Definir ruta destino (Carpeta de descargas configurada)
+            String rutaDestino = parentFrame.getRutaGuardado() + File.separator + archivoDummy.getNombre();
+            File nuevoFichero = new File(rutaDestino);
+            
+            // 2. Crear el archivo físico (Simulación de descarga exitosa)
+            if (nuevoFichero.createNewFile()) {
+                // Opcional: Escribir algo dentro para que no tenga 0 bytes
+                // java.nio.file.Files.write(nuevoFichero.toPath(), "Contenido descargado de la nube".getBytes());
+                
+                // 3. Registrar en log.json para que sea persistente
+                GestorJson gestor = new GestorJson(parentFrame.getRutaGuardado());
+                // Necesitamos un objeto MediaFile real con ruta
+                MediaFile nuevoReal = new MediaFile(nuevoFichero); 
+                gestor.guardarArchivo(nuevoReal); // Asegúrate de tener este método o similar en GestorJson
+                
+                // 4. Feedback y Refresco
+                JOptionPane.showMessageDialog(this, "¡Archivo descargado correctamente!");
+                aplicarFiltrosYOrden(); // Recarga la tabla: ahora saldrá VERDE (Sincronizado)
+                
+            } else {
+                JOptionPane.showMessageDialog(this, "Error: El archivo ya existe o no se puede crear.");
+            }
+        } catch (Exception e) {
+            utils.LoggerError.log("Error al descargar de la nube", e);
+            JOptionPane.showMessageDialog(this, "Error en la descarga: " + e.getMessage());
+        }
+    }
     private void cmbOrdenarPorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbOrdenarPorActionPerformed
         ColumnaOrden nuevaColumna = (ColumnaOrden) cmbOrdenarPor.getSelectedItem();
         int nuevoIndice = nuevaColumna.getIndiceColumna();

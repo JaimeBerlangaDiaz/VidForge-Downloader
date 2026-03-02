@@ -1,5 +1,6 @@
-package berlangadiaz.vidforge.downloader.model;
+package persistence;
 
+import berlangadiaz.vidforge.downloader.model.MediaFile;
 import java.util.prefs.Preferences;
 import java.io.File;
 import java.io.IOException;
@@ -130,7 +131,7 @@ public class GestorJson {
             return (archivos != null) ? archivos : new ArrayList<>();
         }catch (IOException e) {
             // REGISTRO DE ERROR
-            berlangadiaz.vidforge.downloader.model.LoggerError.log("Error al deserializar log.json (historial)", e);
+            utils.LoggerError.log("Error al deserializar log.json (historial)", e);
             throw e; // Re-lanzamos para que la UI informe al usuario
         }
     }
@@ -143,7 +144,14 @@ public class GestorJson {
         lista.add(0, archivoNuevo); // Añade el nuevo archivo al principio
         guardarArchivos(lista); // Guarda la lista completa
     }
-
+    
+    /**
+     * MÉTODO PUENTE (Para compatibilidad con BibliotecaPanel).
+     * Simplemente llama a anadirArchivo.
+     */
+    public void guardarArchivo(MediaFile archivo) throws IOException {
+        anadirArchivo(archivo);
+    }
     /**
      * Elimina una entrada del archivo JSON de historial y lo guarda. SOLUCIONA
      * EL ERROR: gestor.eliminarArchivo(archivoABorrar)
@@ -170,7 +178,7 @@ public class GestorJson {
             mapper.writeValue(logFile, lista);
         } catch (Exception e) {
             // REGISTRO DE ERROR
-            berlangadiaz.vidforge.downloader.model.LoggerError.log("Error crítico al escribir log.json en disco", e);
+            utils.LoggerError.log("Error crítico al escribir log.json en disco", e);
             throw e;
         }
     }
@@ -232,7 +240,7 @@ public class GestorJson {
             return config;
         } catch (IOException e) {
             // REGISTRO DE ERROR
-            berlangadiaz.vidforge.downloader.model.LoggerError.log("Fallo al leer la configuración config.json", e);
+            utils.LoggerError.log("Fallo al leer la configuración config.json", e);
             System.err.println("Error al leer config.json con Jackson: " + e.getMessage());
             return null;
         }
