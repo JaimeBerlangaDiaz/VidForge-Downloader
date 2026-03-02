@@ -546,38 +546,81 @@ public class BibliotecaPanel extends javax.swing.JPanel {
     }
 
     /**
-     * Simula la descarga de un archivo de la nube creando un fichero vacío 
-     * o copiando datos (dependiendo de si tu API real devuelve bytes).
-     * Para esta tarea, crearemos el archivo físico para que cambie de estado.
+     * Descarga el archivo REAL desde la API de DiMediaNet a nuestro disco duro.
      */
     private void descargarDeNube(MediaFile archivoDummy) {
-        try {
-            // 1. Definir ruta destino (Carpeta de descargas configurada)
-            String rutaDestino = parentFrame.getRutaGuardado() + File.separator + archivoDummy.getNombre();
-            File nuevoFichero = new File(rutaDestino);
-            
-            // 2. Crear el archivo físico (Simulación de descarga exitosa)
-            if (nuevoFichero.createNewFile()) {
-                // Opcional: Escribir algo dentro para que no tenga 0 bytes
-                // java.nio.file.Files.write(nuevoFichero.toPath(), "Contenido descargado de la nube".getBytes());
-                
-                // 3. Registrar en log.json para que sea persistente
-                GestorJson gestor = new GestorJson(parentFrame.getRutaGuardado());
-                // Necesitamos un objeto MediaFile real con ruta
-                MediaFile nuevoReal = new MediaFile(nuevoFichero); 
-                gestor.guardarArchivo(nuevoReal); // Asegúrate de tener este método o similar en GestorJson
-                
-                // 4. Feedback y Refresco
-                JOptionPane.showMessageDialog(this, "¡Archivo descargado correctamente!");
-                aplicarFiltrosYOrden(); // Recarga la tabla: ahora saldrá VERDE (Sincronizado)
-                
-            } else {
-                JOptionPane.showMessageDialog(this, "Error: El archivo ya existe o no se puede crear.");
+        // Usamos un SwingWorker para que la pantalla no se congele durante la descarga
+        javax.swing.SwingWorker<Void, Void> worker = new javax.swing.SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                try {
+                    // 1. Obtener las credenciales de la sesión actual
+                    String token = parentFrame.getCurrentJwtToken();
+                    com.berlangadiaz.dimedianet.api.ApiClient cliente = parentFrame.getApiClient();
+
+                    if (token == null || cliente == null) {
+                        throw new Exception("No hay sesión activa en la nube.");
+                    }
+
+                    // 2. Definir la ruta exacta donde se va a guardar
+                    String rutaDestino = parentFrame.getRutaGuardado() + java.io.File.separator + archivoDummy.getNombre();
+                    java.io.File nuevoFichero = new java.io.File(rutaDestino);
+
+                    // 3. Buscar el ID real del archivo en la nube
+                    // (Como el MediaFile de la tabla no tiene el ID de la API, lo buscamos por el nombre)
+                    java.util.List<com.berlangadiaz.dimedianet.api.Media> listaRemota = cliente.getAllMedia(token);
+                    int idParaDescargar = -1;
+                    
+                    for (com.berlangadiaz.dimedianet.api.Media m : listaRemota) {
+                        if (m.mediaFileName != null && m.mediaFileName.equalsIgnoreCase(archivoDummy.getNombre())) {
+                            idParaDescargar = m.id;
+                            break; // ¡Lo encontramos!
+                        }
+                    }
+
+                    if (idParaDescargar == -1) {
+                        throw new Exception("No se ha encontrado el archivo original en el servidor.");
+                    }
+
+                    // 4. DESCARGAR DE VERDAD (Llamada a tu API)
+                    cliente.download(idParaDescargar, nuevoFichero, token);
+
+                    // 5. Registrar en log.json para que sea persistente en el historial
+                    persistence.GestorJson gestor = new persistence.GestorJson(parentFrame.getRutaGuardado());
+                    MediaFile nuevoReal = new MediaFile(nuevoFichero); 
+                    gestor.guardarArchivo(nuevoReal); 
+
+                } catch (Exception e) {
+                    // Si falla algo en segundo plano, lo guardamos en el log de errores
+                    utils.LoggerError.log("Error al descargar archivo real de la nube", e);
+                    throw e; // Pasamos el error al método done() para avisarte
+                }
+                return null;
             }
-        } catch (Exception e) {
-            utils.LoggerError.log("Error al descargar de la nube", e);
-            JOptionPane.showMessageDialog(this, "Error en la descarga: " + e.getMessage());
-        }
+
+            @Override
+            protected void done() {
+                try {
+                    get(); // Comprueba si doInBackground lanzó alguna excepción
+                    
+                    // Si llega aquí, es que todo ha ido genial
+                    javax.swing.JOptionPane.showMessageDialog(BibliotecaPanel.this, 
+                            "¡El archivo se ha descargado correctamente desde la nube!", 
+                            "Descarga Completada", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                            
+                    // Recargamos la tabla para que el icono pase de la Nube (azul) a Sincronizado (verde)
+                    applyingFiltrosYOrdenWrapper(); 
+                    
+                } catch (Exception e) {
+                    javax.swing.JOptionPane.showMessageDialog(BibliotecaPanel.this, 
+                            "Error en la descarga: " + e.getMessage(), 
+                            "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        };
+        
+        // ¡Arrancamos el motor de descarga!
+        worker.execute();
     }
     private void cmbOrdenarPorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbOrdenarPorActionPerformed
         ColumnaOrden nuevaColumna = (ColumnaOrden) cmbOrdenarPor.getSelectedItem();
