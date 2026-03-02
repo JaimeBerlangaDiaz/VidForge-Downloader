@@ -324,6 +324,7 @@ public class BibliotecaPanel extends javax.swing.JPanel {
         tablaArchivos = new javax.swing.JTable();
         panelAcciones = new javax.swing.JPanel();
         btnActualizar = new javax.swing.JButton();
+        btnDescargarNube = new javax.swing.JButton();
         btnBorrar = new javax.swing.JButton();
         txtBuscar = new javax.swing.JTextField();
         btnBuscar = new javax.swing.JButton();
@@ -369,6 +370,8 @@ public class BibliotecaPanel extends javax.swing.JPanel {
 
         add(jScrollPaneTabla, java.awt.BorderLayout.CENTER);
 
+        panelAcciones.setBorder(javax.swing.BorderFactory.createTitledBorder("Doble clic para descargar el archivo o botón Descargar de la Nube con el archivo Seleccionado"));
+        panelAcciones.setToolTipText("Selecciona un archivo de la lista y pulsa el botón para descargar de la nube o abrir el archivo local. También puedes hacer doble clic.");
         panelAcciones.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
         btnActualizar.setText("Actualizar Lista");
@@ -379,6 +382,15 @@ public class BibliotecaPanel extends javax.swing.JPanel {
             }
         });
         panelAcciones.add(btnActualizar);
+
+        btnDescargarNube.setText("Descargar de la Nube");
+        btnDescargarNube.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnDescargarNube.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDescargarNubeActionPerformed(evt);
+            }
+        });
+        panelAcciones.add(btnDescargarNube);
 
         btnBorrar.setText("Borrar Seleccionado:");
         btnBorrar.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
@@ -393,6 +405,7 @@ public class BibliotecaPanel extends javax.swing.JPanel {
         panelAcciones.add(txtBuscar);
 
         btnBuscar.setText("Buscar");
+        btnBuscar.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         btnBuscar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnBuscarActionPerformed(evt);
@@ -650,11 +663,16 @@ public class BibliotecaPanel extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_cmbOrdenarPorActionPerformed
 
+    private void btnDescargarNubeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDescargarNubeActionPerformed
+        gestionarDobleClic();
+    }//GEN-LAST:event_btnDescargarNubeActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnActualizar;
     private javax.swing.JButton btnBorrar;
     private javax.swing.JButton btnBuscar;
+    private javax.swing.JButton btnDescargarNube;
     private javax.swing.JComboBox<ColumnaOrden> cmbOrdenarPor;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
