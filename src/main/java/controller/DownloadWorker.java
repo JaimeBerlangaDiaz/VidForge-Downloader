@@ -36,14 +36,21 @@ public class DownloadWorker extends SwingWorker<String, String> {
     private final MainFrame parentFrame;  // Para saber dónde está el log.json
 
     /**
-     * Constructor
-     * Le pasamos todos los componentes que necesita para comunicarse.
+     * Constructor Le pasamos todos los componentes que necesita para
+     * comunicarse. 
+     * Worker que gestiona el proceso de descarga en un hilo separado.
+     *
+     * @param command Lista de comandos para la ejecución de yt-dlp.
+     * @param progressBar Barra de progreso a actualizar.
+     * @param txtLog Área de texto donde escribir los logs.
+     * @param btnDescargar Botón que se debe reactivar al finalizar.
+     * @param mainView Panel de vista principal para notificaciones.
+     * @param parentFrame Ventana principal para diálogos de error.
      */
     public DownloadWorker(List<String> command,
-                          JProgressBar progressBar,
-                          JTextArea txtLog,
-                          JButton btnDescargar,
-                          MainViewPanel mainView,
+            JProgressBar progressBar,
+            JTextArea txtLog,
+            JButton btnDescargar,             MainViewPanel mainView,
                           MainFrame parentFrame) {
         
         this.command = command;

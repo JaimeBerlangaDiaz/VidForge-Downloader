@@ -1,6 +1,3 @@
-/*
- * Panel de la Biblioteca de Medios (Tarea 2)
- */
 package berlangadiaz.vidforge.downloader.view;
 
 import com.berlangadiaz.dimedianet.api.Media; // El objeto de la API
@@ -19,20 +16,19 @@ import java.io.IOException;
 import javax.swing.JOptionPane;
 
 /**
- *
+ * Panel principal de la biblioteca que gestiona la lista de archivos y acciones.
+ * 
  * @author jaimeberlangadiaz
  */
-/**
- *
- * @author jaimeberlangadiaz
- */
+
 public class BibliotecaPanel extends javax.swing.JPanel {
 
     private MainFrame parentFrame;
     private MediaFileTableModel tableModel; // El "motor" de la tabla
 
     /**
-     * Creates new form BibliotecaPanel
+     * Crea una nueva instancia del panel de biblioteca.
+     * @param parent El marco principal que contiene este panel.
      */
     public BibliotecaPanel(MainFrame parent) {
         // 1. PRIMERO: Crear los componentes visuales (incluida la tabla)
@@ -172,7 +168,8 @@ public class BibliotecaPanel extends javax.swing.JPanel {
     }
     
     /**
-     * Lanza la carga de datos. Es un simple lanzador del método principal.
+     * Carga la lista de archivos desde el fichero de persistencia JSON.
+     * @throws java.io.IOException Si ocurre un error en la lectura del archivo.
      */
     public void cargarDatosDelJson() throws IOException{
         // ⬇️ AÑADIMOS EL TRY-CATCH OBLIGATORIO ⬇️
@@ -188,9 +185,9 @@ public class BibliotecaPanel extends javax.swing.JPanel {
     }
 
     /**
-     * ¡EL MÉTODO FINAL DE LA TAREA 2!
-     * Carga los datos del JSON, los FILTRA (JList), los ORDENA (JComboBox) 
-     * y los muestra en la tabla.
+     * Aplica los filtros de tipo MIME y ordenación a la lista de archivos.
+     *
+     * @throws IOException Si falla la lectura de datos durante la sincronización.
      */
     public void aplicarFiltrosYOrden() throws IOException {
         System.out.println("Sincronizando biblioteca (Fusión Local + Nube)...");

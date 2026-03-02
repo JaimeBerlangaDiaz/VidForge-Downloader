@@ -7,18 +7,21 @@ import javax.swing.JFileChooser;
 import java.io.File;
 
 /**
- *
+ * Panel de configuración para las preferencias del Usuario.
  * @author jaimeberlangadiaz
  */
 public class PreferenciasPanel extends javax.swing.JPanel {
 
     private MainFrame parentFrame;
+
     /**
-     * Creates new form PreferenciasPanel
+     * Constructor del panel de preferencias.
+     *
+     * @param parent El marco principal para gestionar la persistencia.
      */
     public PreferenciasPanel(MainFrame parent) {
         initComponents();
-        spinnerLimite.setModel(new javax.swing.SpinnerNumberModel(0,0,50000,500));
+        spinnerLimite.setModel(new javax.swing.SpinnerNumberModel(0, 0, 50000, 500));
         this.parentFrame = parent;
     }
 

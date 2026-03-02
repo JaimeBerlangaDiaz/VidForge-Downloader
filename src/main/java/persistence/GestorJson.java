@@ -102,13 +102,10 @@ public class GestorJson {
 
     // --- MÉTODOS DE HISTORIAL LOCAL (log.json) ---
     /**
-     * Carga todos los archivos MediaFile guardados en el historial (log.json).
-     * SOLUCIONA EL ERROR: gestor.leerArchivos()
+     * Recupera la lista de archivos guardados en el archivo JSON local.
+     * @return Lista de objetos MediaFile encontrados.
+     * @throws java.io.IOException Si ocurre un error al acceder al archivo.
      */
-    /**
-     * Carga todos los archivos MediaFile guardados en el historial (log.json).
-     */
-    // MODIFICACIÓN: Añadimos 'throws IOException' al método ⬇️
     public List<MediaFile> leerArchivos() throws IOException {
         asegurarRutaBase();
         File logFile = new File(rutaBase, LOG_FILE_NAME);
@@ -137,24 +134,32 @@ public class GestorJson {
     }
 
     /**
-     * Añade un archivo al historial (log.json) y lo guarda.
+     * Añade un nuevo archivo al historial JSON.
+     *
+     * @param archivoNuevo El objeto MediaFile a persistir.
+     * @throws java.io.IOException Si no se puede escribir en el disco.
      */
     public void anadirArchivo(MediaFile archivoNuevo) throws IOException {
         List<MediaFile> lista = leerArchivos(); // Lee la lista existente
         lista.add(0, archivoNuevo); // Añade el nuevo archivo al principio
         guardarArchivos(lista); // Guarda la lista completa
     }
-    
+
     /**
-     * MÉTODO PUENTE (Para compatibilidad con BibliotecaPanel).
-     * Simplemente llama a anadirArchivo.
+     * Guarda un objeto MediaFile en el historial local.
+     *
+     * @param archivo El archivo multimedia a guardar.
+     * @throws IOException Si hay un error de escritura en disco.
      */
     public void guardarArchivo(MediaFile archivo) throws IOException {
         anadirArchivo(archivo);
     }
+
     /**
-     * Elimina una entrada del archivo JSON de historial y lo guarda. SOLUCIONA
-     * EL ERROR: gestor.eliminarArchivo(archivoABorrar)
+     * Elimina un archivo del historial JSON local.
+     *
+     * @param archivoABorrar El objeto que se desea eliminar.
+     * @throws IOException Si no se puede actualizar el archivo en disco.
      */
     public void eliminarArchivo(MediaFile archivoABorrar) throws IOException {
         List<MediaFile> lista = leerArchivos(); // Lee la lista existente

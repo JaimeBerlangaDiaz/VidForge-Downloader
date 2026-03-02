@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"berlangadiaz.vidforge.downloader.model"},{"l":"berlangadiaz.vidforge.downloader.view"},{"l":"controller"},{"l":"persistence"},{"l":"utils"}];updateSearchResults();

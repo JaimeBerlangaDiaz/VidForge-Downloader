@@ -1,6 +1,7 @@
 package berlangadiaz.vidforge.downloader.view;
 /**
- * @author: Jaime Berlanga Diaz
+ * Diálogo informativo que muestra los detalles de la aplicación y créditos.
+ * @author Jaime Berlanga Diaz
  */
 public class AboutDialog extends javax.swing.JDialog{
     
@@ -34,6 +35,7 @@ public class AboutDialog extends javax.swing.JDialog{
         setTitle("Acerca de VidForge Downloader");
         setModal(true);
         setResizable(false);
+        setSize(new java.awt.Dimension(220, 220));
         getContentPane().setLayout(null);
 
         jLabel1.setFont(new java.awt.Font("AppleMyungjo", 1, 24)); // NOI18N
@@ -46,11 +48,10 @@ public class AboutDialog extends javax.swing.JDialog{
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel2.setText("Creado por: Jaime Berlanga Diaz - Curso DI");
         getContentPane().add(jLabel2);
-        jLabel2.setBounds(0, 30, 400, 15);
+        jLabel2.setBounds(0, 30, 400, 16);
 
         jScrollPane1.setAlignmentX(0.0F);
         jScrollPane1.setAlignmentY(0.0F);
-        jScrollPane1.setSize(new java.awt.Dimension(340, 120));
 
         jTextArea1.setColumns(20);
         jTextArea1.setRows(5);

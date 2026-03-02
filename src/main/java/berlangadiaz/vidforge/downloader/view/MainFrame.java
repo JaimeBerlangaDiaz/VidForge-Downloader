@@ -510,11 +510,8 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     /**
-     * Devuelve la instancia del panel de la biblioteca.
-     * Es esencial para que otras vistas (como MainViewPanel o el DownloadWorker)
-     * puedan notificar al panel de la biblioteca que debe recargar la lista
-     * después de guardar un nuevo archivo en el log.json.
-     * * @return La instancia del {@code BibliotecaPanel}.
+     * Obtiene la referencia al panel de la biblioteca.
+     * @return El objeto BibliotecaPanel actual.
      */
     public BibliotecaPanel getPanelBiblioteca() {
         return panelBiblioteca;
