@@ -1,0 +1,57 @@
+@options
+@packages
+-classpath
+'C:/Users/jakro/.m2/repository/tools/jackson/core/jackson-databind/3.0.0/jackson-databind-3.0.0.jar;C:/Users/jakro/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.20/jackson-annotations-2.20.jar;C:/Users/jakro/.m2/repository/tools/jackson/core/jackson-core/3.0.0/jackson-core-3.0.0.jar;C:/Users/jakro/.m2/repository/com/berlangadiaz/DiMediaNetComponent/1.0-SNAPSHOT/DiMediaNetComponent-1.0-SNAPSHOT.jar;C:/Users/jakro/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.15.2/jackson-databind-2.15.2.jar;C:/Users/jakro/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.15.2/jackson-core-2.15.2.jar;C:/Users/jakro/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.15.2/jackson-datatype-jsr310-2.15.2.jar;C:/Users/jakro/.m2/repository/com/formdev/flatlaf/3.2.5/flatlaf-3.2.5.jar'
+-encoding
+'UTF-8'
+-protected
+--release
+24
+-sourcepath
+'C:/Users/jakro/Documents/NetBeansProjects/VidForge-Downloader/src/main/java;C:/Users/jakro/Documents/NetBeansProjects/VidForge-Downloader/target/generated-sources/annotations'
+-author
+-bottom
+'Copyright &#169; 2026. All rights reserved.'
+-charset
+'UTF-8'
+-d
+'C:/Users/jakro/Documents/NetBeansProjects/VidForge-Downloader/doc/javadoc'
+-docencoding
+'UTF-8'
+-doctitle
+'VidForge Downloader 1.0.0 API'
+-use
+-version
+-windowtitle
+'VidForge Downloader 1.0.0 API'
+berlangadiaz.vidforge.downloader.model
+berlangadiaz.vidforge.downloader.view
+controller
+persistence
+utils
+C:\Users\jakro\.m2\repository\tools\jackson\core\jackson-databind\3.0.0\jackson-databind-3.0.0.jar = 1763657771458
+C:\Users\jakro\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.20\jackson-annotations-2.20.jar = 1763657771520
+C:\Users\jakro\.m2\repository\tools\jackson\core\jackson-core\3.0.0\jackson-core-3.0.0.jar = 1763654191603
+C:\Users\jakro\.m2\repository\com\berlangadiaz\DiMediaNetComponent\1.0-SNAPSHOT\DiMediaNetComponent-1.0-SNAPSHOT.jar = 1771242411325
+C:\Users\jakro\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.15.2\jackson-databind-2.15.2.jar = 1765626104612
+C:\Users\jakro\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.15.2\jackson-core-2.15.2.jar = 1765626104772
+C:\Users\jakro\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.15.2\jackson-datatype-jsr310-2.15.2.jar = 1765626104746
+C:\Users\jakro\.m2\repository\com\formdev\flatlaf\3.2.5\flatlaf-3.2.5.jar = 1771246723324
+C:\Users\jakro\Documents\NetBeansProjects\VidForge-Downloader\src\main\java = 1771939214888
+C:\Users\jakro\Documents\NetBeansProjects\VidForge-Downloader\target\generated-sources\annotations = 1776689547297
+C:\Users\jakro\Documents\NetBeansProjects\VidForge-Downloader\doc\javadoc\allclasses-index.html = 1776689552270
+C:\Users\jakro\Documents\NetBeansProjects\VidForge-Downloader\doc\javadoc\allpackages-index.html = 1776689552273
+C:\Users\jakro\Documents\NetBeansProjects\VidForge-Downloader\doc\javadoc\constant-values.html = 1776689552168
+C:\Users\jakro\Documents\NetBeansProjects\VidForge-Downloader\doc\javadoc\element-list = 1776689552122
+C:\Users\jakro\Documents\NetBeansProjects\VidForge-Downloader\doc\javadoc\help-doc.html = 1776689552301
+C:\Users\jakro\Documents\NetBeansProjects\VidForge-Downloader\doc\javadoc\index-all.html = 1776689552293
+C:\Users\jakro\Documents\NetBeansProjects\VidForge-Downloader\doc\javadoc\index.html = 1776689552258
+C:\Users\jakro\Documents\NetBeansProjects\VidForge-Downloader\doc\javadoc\member-search-index.js = 1776689552279
+C:\Users\jakro\Documents\NetBeansProjects\VidForge-Downloader\doc\javadoc\module-search-index.js = 1776689552274
+C:\Users\jakro\Documents\NetBeansProjects\VidForge-Downloader\doc\javadoc\overview-summary.html = 1776689552297
+C:\Users\jakro\Documents\NetBeansProjects\VidForge-Downloader\doc\javadoc\overview-tree.html = 1776689552255
+C:\Users\jakro\Documents\NetBeansProjects\VidForge-Downloader\doc\javadoc\package-search-index.js = 1776689552276
+C:\Users\jakro\Documents\NetBeansProjects\VidForge-Downloader\doc\javadoc\search.html = 1776689552295
+C:\Users\jakro\Documents\NetBeansProjects\VidForge-Downloader\doc\javadoc\serialized-form.html = 1776689552191
+C:\Users\jakro\Documents\NetBeansProjects\VidForge-Downloader\doc\javadoc\tag-search-index.js = 1776689552281
+C:\Users\jakro\Documents\NetBeansProjects\VidForge-Downloader\doc\javadoc\type-search-index.js = 1776689552278

@@ -14,6 +14,7 @@
         <exec.mainClass>berlangadiaz.vidforge.downloader.view.MainFrame</exec.mainClass>
         <maven.compiler.release>24</maven.compiler.release>
     </properties>    
+    
     <dependencies>
         <dependency>
             <groupId>tools.jackson.core</groupId>
@@ -31,26 +32,29 @@
             <version>3.2.5</version>
         </dependency>
     </dependencies>   
+    
     <build>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>false</filtering>
             </resource>
-        </resources>       
+        </resources>        
+        
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
+                    <source>${maven.compiler.release}</source>
+                    <target>${maven.compiler.release}</target>
                     <compilerArgs>
                         <arg>--enable-preview</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>          
+            
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -61,7 +65,26 @@
                         <nonFilteredFileExtension>jpg</nonFilteredFileExtension>
                     </nonFilteredFileExtensions>
                 </configuration>
-            </plugin>           
+            </plugin>            
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -69,11 +92,14 @@
                 <configuration>
                     <archive>
                         <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
                             <mainClass>berlangadiaz.vidforge.downloader.view.MainFrame</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
             </plugin>
+            
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>

@@ -123,12 +123,6 @@ public class MainFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jMenuBar2 = new javax.swing.JMenuBar();
-        jMenu3 = new javax.swing.JMenu();
-        jMenu4 = new javax.swing.JMenu();
-        jMenuBar3 = new javax.swing.JMenuBar();
-        jMenu5 = new javax.swing.JMenu();
-        jMenu6 = new javax.swing.JMenu();
         diMediaNetPoller = new com.berlangadiaz.dimedianet.component.DiMediaLink();
         panelContenedor = new javax.swing.JPanel();
         jMenuBar1 = new javax.swing.JMenuBar();
@@ -143,18 +137,8 @@ public class MainFrame extends javax.swing.JFrame {
         menuAyuda = new javax.swing.JMenu();
         itemAcerdaDe = new javax.swing.JMenuItem();
         itemVerLogs = new javax.swing.JMenuItem();
-
-        jMenu3.setText("File");
-        jMenuBar2.add(jMenu3);
-
-        jMenu4.setText("Edit");
-        jMenuBar2.add(jMenu4);
-
-        jMenu5.setText("File");
-        jMenuBar3.add(jMenu5);
-
-        jMenu6.setText("Edit");
-        jMenuBar3.add(jMenu6);
+        itemManuualUsuario = new javax.swing.JMenuItem();
+        itemApiDocs = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("VidForge Downloader");
@@ -172,7 +156,7 @@ public class MainFrame extends javax.swing.JFrame {
         panelContenedor.setLayout(new java.awt.BorderLayout());
         getContentPane().add(panelContenedor, java.awt.BorderLayout.CENTER);
 
-        jMenuBar1.setPreferredSize(new java.awt.Dimension(128, 30));
+        jMenuBar1.setPreferredSize(new java.awt.Dimension(800, 30));
 
         menuArchivo.setText("Archivo");
 
@@ -243,6 +227,22 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
         menuAyuda.add(itemVerLogs);
+
+        itemManuualUsuario.setText("User Manual");
+        itemManuualUsuario.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                itemManuualUsuarioActionPerformed(evt);
+            }
+        });
+        menuAyuda.add(itemManuualUsuario);
+
+        itemApiDocs.setText("API Docs");
+        itemApiDocs.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                itemApiDocsActionPerformed(evt);
+            }
+        });
+        menuAyuda.add(itemApiDocs);
 
         jMenuBar1.add(menuAyuda);
 
@@ -358,6 +358,47 @@ public class MainFrame extends javax.swing.JFrame {
                     javax.swing.JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_itemVerLogsActionPerformed
+
+    private void itemManuualUsuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemManuualUsuarioActionPerformed
+        try {
+            // Buscamos la carpeta oculta AppData/Local de Windows
+            String appDataPath = System.getenv("LOCALAPPDATA"); 
+            // Buscamos el PDF dentro de la carpeta que creará nuestro instalador
+            java.io.File manualPdf = new java.io.File(appDataPath + "\\VidForge\\ManualUsuario.pdf"); 
+            
+            if (manualPdf.exists()) {
+                // Si el archivo existe, le decimos a Windows que lo abra con su programa por defecto
+                java.awt.Desktop.getDesktop().open(manualPdf);
+            } else {
+                // Si no existe (porque el usuario eligió no instalarlo), mostramos un aviso
+                javax.swing.JOptionPane.showMessageDialog(this, 
+                        "El manual de usuario no está instalado en este equipo.", 
+                        "Archivo no encontrado", 
+                        javax.swing.JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }//GEN-LAST:event_itemManuualUsuarioActionPerformed
+
+    private void itemApiDocsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemApiDocsActionPerformed
+        try {
+            String appDataPath = System.getenv("LOCALAPPDATA"); 
+            // Aquí buscamos el archivo index.html dentro de la carpeta javadoc
+            java.io.File apiDocs = new java.io.File(appDataPath + "\\VidForge\\javadoc\\index.html"); 
+            
+            if (apiDocs.exists()) {
+                java.awt.Desktop.getDesktop().open(apiDocs);
+            } else {
+                javax.swing.JOptionPane.showMessageDialog(this, 
+                        "La documentación de la API no está instalada en este equipo.", 
+                        "Archivo no encontrado", 
+                        javax.swing.JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }//GEN-LAST:event_itemApiDocsActionPerformed
 
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
@@ -631,19 +672,15 @@ public class MainFrame extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private com.berlangadiaz.dimedianet.component.DiMediaLink diMediaNetPoller;
     private javax.swing.JMenuItem itemAcerdaDe;
+    private javax.swing.JMenuItem itemApiDocs;
     private javax.swing.JMenuItem itemLogout;
+    private javax.swing.JMenuItem itemManuualUsuario;
     private javax.swing.JMenuItem itemMostrarBiblioteca;
     private javax.swing.JMenuItem itemMostrarDescarga;
     private javax.swing.JMenuItem itemPreferencias;
     private javax.swing.JMenuItem itemSalir;
     private javax.swing.JMenuItem itemVerLogs;
-    private javax.swing.JMenu jMenu3;
-    private javax.swing.JMenu jMenu4;
-    private javax.swing.JMenu jMenu5;
-    private javax.swing.JMenu jMenu6;
     private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JMenuBar jMenuBar2;
-    private javax.swing.JMenuBar jMenuBar3;
     private javax.swing.JMenu menuArchivo;
     private javax.swing.JMenu menuAyuda;
     private javax.swing.JMenu menuEditar;
